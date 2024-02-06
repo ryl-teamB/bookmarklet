@@ -1,13 +1,3 @@
-void((function(f){
-  var script = document.createElement('script');
-  script.src = 'https://code.jquery.com/jquery-3.2.1.min.js';
-  script.onload = function(){
-    var $ = jQuery.noConflict(true);
-    f($);
-  };
-  document.body.appendChild(script);
-})(
-function($, undefined){
   var style = {
     "max-height": "calc(100% - 100px)",
     "padding": "20px 20px 10px",
@@ -74,7 +64,3 @@ function($, undefined){
       }
     });
   });
-
-
-})
-);
