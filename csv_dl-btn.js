@@ -47,7 +47,7 @@
   });
 
   //SKU書き換え用
-  $('#baihen').on('click', function() {
+  $('#skuChange').on('click', function() {
     namesToCheckForSKUchange.forEach(function(name) {
       var checkbox = $('input[type="checkbox"][name="' + name + '"]');
       if(!checkbox.prop('checked')) {
