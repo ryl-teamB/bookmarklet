@@ -1,9 +1,10 @@
-// スタイルを追加
-const style = document.createElement('style');
-style.textContent = `
+function app() {
+	// スタイルを追加
+	const style = document.createElement('style');
+	style.textContent = `
         #floating-extractor {
             position: fixed;
-            top: 20px;
+            top: 75px;
             right: 20px;
             width: 400px;
             background: white;
@@ -95,41 +96,57 @@ style.textContent = `
             white-space: nowrap;
         }
     `;
-document.head.appendChild(style);
+	document.head.appendChild(style);
 
-// データを取得
-const scriptElement = document.querySelector('#item-page-app-data');
-if (!scriptElement) {
-	alert('データが見つかりませんでした');
-	return;
-}
+	// データを取得
+	const scriptElement = document.querySelector('#item-page-app-data');
+	if (!scriptElement) {
+		alert('データが見つかりませんでした');
+		return;
+	}
 
-let data;
-try {
-	data = JSON.parse(scriptElement.textContent);
-} catch (e) {
-	alert('JSONの解析に失敗しました: ' + e.message);
-	return;
-}
+	let data;
+	try {
+		data = JSON.parse(scriptElement.textContent);
+	} catch (e) {
+		alert('JSONの解析に失敗しました: ' + e.message);
+		return;
+	}
 
-// 商品情報を抽出
-const itemInfo = data.api.data.itemInfoSku;
-const reviews = itemInfo.itemReviewInfo?.reviews || [];
+	// 商品情報を抽出
+	const itemInfo = data.api.data.itemInfoSku;
+	const reviews = itemInfo.itemReviewInfo?.reviews || [];
 
-// 在庫情報とSKU情報をマージ
-const inventoryMap = new Map(itemInfo.purchaseInfo.variantMappedInventories.map((inv) => [inv.sku, inv]));
+	// シングルSKUとマルチSKUで取得する項目を分ける
+	let skuInfo = [];
 
-const skuInfo = itemInfo.purchaseInfo.sku.map((sku) => ({
-	sku: sku.variantId,
-	quantity: inventoryMap.get(sku.variantId)?.quantity || 0,
-	price: sku.taxIncludedPrice,
-	color: sku.selectorValues[0],
-}));
+	if (itemInfo.purchaseInfo.sku.length) {
+		console.log('マルチSKUです');
+		// 在庫情報とSKU情報をマージ
+		const inventoryMap = new Map(itemInfo.purchaseInfo.variantMappedInventories.map((inv) => [inv.sku, inv]));
+        
+		skuInfo = itemInfo.sku.map((sku) => ({
+			sku: sku.variantId,
+			quantity: inventoryMap.get(sku.variantId)?.quantity || 0,
+			price: sku.taxIncludedPrice,
+			color: sku.selectorValues[0],
+		}));
+	} else {
+        console.log('シングルSKUです');
+        console.log(itemInfo.purchaseInfo);
+        
+		skuInfo.push({
+			sku: itemInfo.purchaseInfo.variantMappedInventories[0].sku,
+			quantity: itemInfo.purchaseInfo.variantMappedInventories[0].quantity || 0,
+			price: itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.minPrice,
+			color: "シングルSKUのため無し",
+		});
+	}
 
-// UIを作成
-const container = document.createElement('div');
-container.id = 'floating-extractor';
-container.innerHTML = `
+	// UIを作成
+	const container = document.createElement('div');
+	container.id = 'floating-extractor';
+	container.innerHTML = `
         <div class="header">
             <span>商品情報抽出</span>
             <div class="controls">
@@ -185,59 +202,63 @@ container.innerHTML = `
             </div>
         </div>
     `;
-document.body.appendChild(container);
+	document.body.appendChild(container);
 
-// ドラッグ機能
-let isDragging = false;
-let currentX;
-let currentY;
-let initialX;
-let initialY;
-let xOffset = 0;
-let yOffset = 0;
+	// ドラッグ機能
+	let isDragging = false;
+	let currentX;
+	let currentY;
+	let initialX;
+	let initialY;
+	let xOffset = 0;
+	let yOffset = 0;
 
-const header = container.querySelector('.header');
+	const header = container.querySelector('.header');
 
-header.addEventListener('mousedown', dragStart);
-document.addEventListener('mousemove', drag);
-document.addEventListener('mouseup', dragEnd);
+	header.addEventListener('mousedown', dragStart);
+	document.addEventListener('mousemove', drag);
+	document.addEventListener('mouseup', dragEnd);
 
-function dragStart(e) {
-	initialX = e.clientX - xOffset;
-	initialY = e.clientY - yOffset;
+	function dragStart(e) {
+		initialX = e.clientX - xOffset;
+		initialY = e.clientY - yOffset;
 
-	if (e.target === header) {
-		isDragging = true;
+		if (e.target === header) {
+			isDragging = true;
+		}
 	}
-}
 
-function drag(e) {
-	if (isDragging) {
-		e.preventDefault();
-		currentX = e.clientX - initialX;
-		currentY = e.clientY - initialY;
-		xOffset = currentX;
-		yOffset = currentY;
+	function drag(e) {
+		if (isDragging) {
+			e.preventDefault();
+			currentX = e.clientX - initialX;
+			currentY = e.clientY - initialY;
+			xOffset = currentX;
+			yOffset = currentY;
 
-		container.style.transform = `translate(${currentX}px, ${currentY}px)`;
+			container.style.transform = `translate(${currentX}px, ${currentY}px)`;
+		}
 	}
+
+	function dragEnd() {
+		initialX = currentX;
+		initialY = currentY;
+		isDragging = false;
+	}
+
+	// 最小化機能
+	const minimizeBtn = container.querySelector('.minimize');
+	minimizeBtn.addEventListener('click', () => {
+		container.classList.toggle('minimized');
+		minimizeBtn.textContent = container.classList.contains('minimized') ? '□' : '_';
+	});
+
+	// 閉じる機能
+	const closeBtn = container.querySelector('.close');
+	closeBtn.addEventListener('click', () => {
+		container.remove();
+	});
 }
 
-function dragEnd() {
-	initialX = currentX;
-	initialY = currentY;
-	isDragging = false;
-}
-
-// 最小化機能
-const minimizeBtn = container.querySelector('.minimize');
-minimizeBtn.addEventListener('click', () => {
-	container.classList.toggle('minimized');
-	minimizeBtn.textContent = container.classList.contains('minimized') ? '□' : '_';
-});
-
-// 閉じる機能
-const closeBtn = container.querySelector('.close');
-closeBtn.addEventListener('click', () => {
-	container.remove();
-});
+// 実行
+app();
