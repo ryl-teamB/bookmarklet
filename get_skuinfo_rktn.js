@@ -1,5 +1,5 @@
 function app() {
-	// スタイルを追加
+	// スタイルの作成と追加
 	const style = document.createElement('style');
 	style.textContent = `
         #floating-extractor {
@@ -11,7 +11,7 @@ function app() {
             border: 1px solid #ccc;
             border-radius: 8px;
             padding: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             z-index: 999999999;
             font-family: Arial, sans-serif;
             max-height: 90vh;
@@ -67,39 +67,16 @@ function app() {
             border-radius: 2px;
         }
         #floating-extractor .review {
-            border-left: 3px solid #4CAF50;
+            border-left: 3px solid #4caf50;
             padding-left: 10px;
             margin: 10px 0;
         }
-        #floating-extractor .inventory-item {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            padding: 8px;
-            background: white;
-            border-radius: 4px;
-            margin: 5px 0;
-        }
-        #floating-extractor .inventory-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            padding: 8px;
-            background: #f0f0f0;
-            font-weight: bold;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-        #floating-extractor .inventory-value {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
     `;
+
 	document.head.appendChild(style);
 
-	// データを取得
-	const scriptElement = document.querySelector('#item-page-app-data');
+	// データの取得と解析
+	const scriptElement = document.getElementById('item-page-app-data');
 	if (!scriptElement) {
 		alert('データが見つかりませんでした');
 		return;
@@ -113,98 +90,84 @@ function app() {
 		return;
 	}
 
-	// 商品情報を抽出
 	const itemInfo = data.api.data.itemInfoSku;
 	const reviews = itemInfo.itemReviewInfo?.reviews || [];
 
-	// シングルSKUとマルチSKUで取得する項目を分ける
-	let skuInfo = [];
-
-	if (itemInfo.purchaseInfo.sku.length) {
-		console.log('マルチSKUです');
-		// 在庫情報とSKU情報をマージ
-		const inventoryMap = new Map(itemInfo.purchaseInfo.variantMappedInventories.map((inv) => [inv.sku, inv]));
-        
-		skuInfo = itemInfo.sku.map((sku) => ({
-			sku: sku.variantId,
-			quantity: inventoryMap.get(sku.variantId)?.quantity || 0,
-			price: sku.taxIncludedPrice,
-			color: sku.selectorValues[0],
-		}));
-	} else {
-        console.log('シングルSKUです');
-        console.log(itemInfo.purchaseInfo);
-        
-		skuInfo.push({
-			sku: itemInfo.purchaseInfo.variantMappedInventories[0].sku,
-			quantity: itemInfo.purchaseInfo.variantMappedInventories[0].quantity || 0,
-			price: itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.minPrice,
-			color: "シングルSKUのため無し",
-		});
-	}
-
-	// UIを作成
+	// コンテナの作成
 	const container = document.createElement('div');
 	container.id = 'floating-extractor';
-	container.innerHTML = `
-        <div class="header">
-            <span>商品情報抽出</span>
-            <div class="controls">
-                <button class="minimize">_</button>
-                <button class="close">×</button>
-            </div>
-        </div>
-        <div class="content">
-            <div class="section">
-                <div class="section-title">基本情報</div>
-                <div class="item">商品ID: ${itemInfo.itemId}</div>
-                <div class="item">商品番号: ${itemInfo.manageNumber}</div>
-                <div class="item">最低価格: ¥${itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.minPrice.toLocaleString()}</div>
-                ${itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.maxPrice ? `<div class="item">最高価格: ¥${itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.maxPrice.toLocaleString()}</div>` : ''}
-            </div>
 
-            <div class="section">
-                <div class="section-title">在庫情報</div>
-                <div class="inventory-header">
-                    <div>カラー</div>
-                    <div>在庫数</div>
-                    <div>価格</div>
-                </div>
-                ${skuInfo
-									.map(
-										(info) => `
-                    <div class="inventory-item">
-                        <div class="inventory-value">${info.color}</div>
-                        <div class="inventory-value">${info.quantity}個</div>
-                        <div class="inventory-value">¥${info.price.toLocaleString()}</div>
-                    </div>
-                `
-									)
-									.join('')}
-            </div>
+	// 基本情報の構築
+	const basicInfo = '<div class="header">' + '<span>商品情報抽出</span>' + '<div class="controls">' + '<button class="minimize">_</button>' + '<button class="close">×</button>' + '</div>' + '</div>' + '<div class="content">' + '<div class="section">' + '<div class="section-title">基本情報</div>' + '<div class="item">商品ID: ' + itemInfo.itemId + '</div>' + '<div class="item">商品番号: ' + itemInfo.manageNumber + '</div>' + '<div class="item">最低価格: ¥' + itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.minPrice.toLocaleString() + '</div>';
 
-            <div class="section">
-                <div class="section-title">レビュー情報</div>
-                <div class="item">総レビュー数: ${itemInfo.itemReviewInfo.summary.itemReviewCount}</div>
-                <div class="item">平均評価: ${itemInfo.itemReviewInfo.summary.itemReviewRating}</div>
-                ${reviews
-									.slice(0, 3)
-									.map(
-										(review) => `
-                    <div class="review">
-                        <div>評価: ${review.evaluation}点</div>
-                        <div>投稿者: ${review.nickName}</div>
-                        <div>コメント: ${review.review}</div>
-                    </div>
-                `
-									)
-									.join('')}
-            </div>
-        </div>
-    `;
+	// 最高価格の追加（存在する場合）
+	const maxPrice = itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.maxPrice;
+	const maxPriceHtml = maxPrice ? '<div class="item">最高価格: ¥' + maxPrice.toLocaleString() + '</div>' : '';
+
+	// シングルSKUとマルチSKUで取得する項目を分ける
+	const determinedSKU = itemInfo.purchaseInfo.sku.length > 0 ? 'マルチSKU' : 'シングルSKU';
+	// alert(determinedSKU);
+
+	let inventoryInfo = '';
+	let skuInfo = '';
+	if (determinedSKU === 'マルチSKU') {
+		// 在庫情報の構築
+		inventoryInfo =
+			'</div><div class="section">' +
+			'<div class="section-title">在庫情報</div>' +
+			itemInfo.purchaseInfo.sku
+				.map(function (inv) {
+					return '<div class="item">SKU: ' + inv.variantId + ' - 在庫数: ' + inv.newPurchaseSku.quantity + '</div>';
+				})
+				.join('');
+
+		// SKU価格情報の構築
+		skuInfo =
+			'</div><div class="section">' +
+			'<div class="section-title">SKU価格情報</div>' +
+			itemInfo.sku
+				.map(function (inv) {
+					return '<div class="item">SKU: ' + inv.variantId + ' - ' + inv.selectorValues + '<br>価格: ¥' + inv.taxIncludedPrice + '</div>';
+				})
+				.join('');
+	} else {
+		// 在庫情報の構築
+		inventoryInfo =
+			'</div><div class="section">' +
+			'<div class="section-title">在庫情報</div>' +
+			itemInfo.purchaseInfo.variantMappedInventories
+				.map(function (inv) {
+					return '<div class="item">SKU: ' + inv.sku + ' - 在庫数: ' + inv.quantity + '</div>';
+				})
+				.join('');
+
+		// SKU価格情報の構築
+		skuInfo = '</div><div class="section">' + '<div class="section-title">SKU価格情報</div>' + '<div class="item">シングルSKUページのためSKU価格情報は表示されません。</div>';
+	}
+
+	// レビュー情報の構築
+	const reviewInfo =
+		'</div><div class="section">' +
+		'<div class="section-title">レビュー情報</div>' +
+		'<div class="item">総レビュー数: ' +
+		itemInfo.itemReviewInfo.summary.itemReviewCount +
+		'</div>' +
+		'<div class="item">平均評価: ' +
+		itemInfo.itemReviewInfo.summary.itemReviewRating +
+		'</div>' +
+		reviews
+			.slice(0, 3)
+			.map(function (review) {
+				return '<div class="review">' + '<div>評価: ' + review.evaluation + '点</div>' + '<div>投稿者: ' + review.nickName + '</div>' + '<div>コメント: ' + review.review + '</div>' + '</div>';
+			})
+			.join('') +
+		'</div></div>';
+
+	// すべての情報を結合
+	container.innerHTML = basicInfo + maxPriceHtml + inventoryInfo + skuInfo + reviewInfo;
 	document.body.appendChild(container);
 
-	// ドラッグ機能
+	// ドラッグ機能の実装
 	let isDragging = false;
 	let currentX;
 	let currentY;
@@ -222,7 +185,6 @@ function app() {
 	function dragStart(e) {
 		initialX = e.clientX - xOffset;
 		initialY = e.clientY - yOffset;
-
 		if (e.target === header) {
 			isDragging = true;
 		}
@@ -235,8 +197,7 @@ function app() {
 			currentY = e.clientY - initialY;
 			xOffset = currentX;
 			yOffset = currentY;
-
-			container.style.transform = `translate(${currentX}px, ${currentY}px)`;
+			container.style.transform = 'translate(' + currentX + 'px, ' + currentY + 'px)';
 		}
 	}
 
@@ -246,19 +207,18 @@ function app() {
 		isDragging = false;
 	}
 
-	// 最小化機能
+	// 最小化ボタンの機能
 	const minimizeBtn = container.querySelector('.minimize');
-	minimizeBtn.addEventListener('click', () => {
+	minimizeBtn.addEventListener('click', function () {
 		container.classList.toggle('minimized');
 		minimizeBtn.textContent = container.classList.contains('minimized') ? '□' : '_';
 	});
 
-	// 閉じる機能
+	// 閉じるボタンの機能
 	const closeBtn = container.querySelector('.close');
-	closeBtn.addEventListener('click', () => {
+	closeBtn.addEventListener('click', function () {
 		container.remove();
 	});
 }
 
-// 実行
 app();
