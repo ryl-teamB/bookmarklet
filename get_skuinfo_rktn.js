@@ -99,7 +99,7 @@ function getYahooInfo() {
 	container.id = 'floating-extractor';
 
 	// 基本情報の構築
-	const basicInfo = '<div class="header">' + '<span>商品情報抽出</span>' + '<div class="controls">' + '<button class="minimize">_</button>' + '<button class="close">×</button>' + '</div>' + '</div>' + '<div class="content">' + '<div class="section">' + '<div class="section-title">基本情報</div>' + '<div class="item">商品ID: ' + itemInfo.sellerManagedItemId + '</div>' + '<div class="item">商品番号: ' + itemInfo.srid + '</div>' + '<div class="item">商品名: ' + itemInfo.name + '</div>' + '<div class="item">PRオプション料率: ' + itemInfo.prRate + '%</div>';
+	const basicInfo = '<div class="header">' + '<span>商品情報抽出</span>' + '<div class="controls">' + '<button class="minimize">_</button>' + '<button class="close">×</button>' + '</div>' + '</div>' + '<div class="content">' + '<div class="section">' + '<div class="section-title">基本情報</div>' + '<div class="item">商品ID: ' + itemInfo.srid + '</div>' + '<div class="item">商品番号: ' + itemInfo.sellerManagedItemId + '</div>' + '<div class="item">商品名: ' + itemInfo.name + '</div>' + '<div class="item">PRオプション料率: ' + itemInfo.prRate + '%</div>';
 
 	// すべての情報を結合
 	container.innerHTML = basicInfo;
