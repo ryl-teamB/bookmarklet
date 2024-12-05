@@ -47,12 +47,12 @@ style.textContent = `
             background: #d0d0d0;
         }
         #floating-extractor .content {
-            padding: 10px;
+            padding: 0;
         }
         #floating-extractor .section {
             margin-bottom: 15px;
             padding: 10px;
-            background: #f5f5f5;
+            background: #ededed;
             border-radius: 4px;
         }
         #floating-extractor .section-title {
@@ -65,12 +65,16 @@ style.textContent = `
             padding: 5px;
             background: white;
             border-radius: 2px;
+			line-height: 1.5;
         }
         #floating-extractor .review {
             border-left: 3px solid #4caf50;
             padding-left: 10px;
             margin: 10px 0;
         }
+		.emphasis {
+			font-weight: bold;
+		}
     `;
 
 function getYahooInfo() {
@@ -87,7 +91,7 @@ function getYahooInfo() {
 	try {
 		data = JSON.parse(scriptElement.textContent);
 	} catch (e) {
-		alert('JSONの解析に失敗しました: ' + e.message);
+		alert('JSONの解析に失敗しました：' + e.message);
 		return;
 	}
 
@@ -101,35 +105,56 @@ function getYahooInfo() {
 	const basicInfo = `
 		<div class="section">
 			<div class="section-title">基本情報</div>
-			<div class="item">商品ID: ${itemInfo.srid}</div>
-			<div class="item">商品番号: ${itemInfo.sellerManagedItemId}</div>
-			<div class="item">通常価格: ¥${itemInfo.regularPrice.toLocaleString()}</div>
-			<div class="item">PRオプション料率: ${itemInfo.prRate}%</div>
+			<div class="item">商品ID：${itemInfo.srid}</div>
+			<div class="item">商品番号：${itemInfo.sellerManagedItemId}</div>
+			<div class="item">PRオプション料率：<span class="emphasis">${itemInfo.prRate}%</span></div>
+		</div>
+		`;
+
+	// 価格情報の取得
+	const regularPrice = itemInfo.regularPrice;
+	const bargainPrice = itemInfo.bargainPrice;
+	const premiumPrice = itemInfo.premiumPrice;
+	const originalPrice = itemInfo.originalPrice;
+
+	const regularPriceItem = regularPrice ? `<div class="item">通常価格：<span class="emphasis">¥${regularPrice.toLocaleString()}</span></div>` : '';
+	const bargainPriceItem = bargainPrice ? `<div class="item">セール価格：<span class="emphasis">¥${bargainPrice.toLocaleString()}</span></div>` : '';
+	const premiumPriceItem = premiumPrice ? `<div class="item">LYPプレミアム会員価格：<span class="emphasis">¥${premiumPrice.toLocaleString()}</span></div>` : '';
+	const originalPriceItem = originalPrice ? `<div class="item">メーカー希望小売価格：<span class="emphasis">¥${originalPrice.toLocaleString()}</span></div>` : '';
+
+	// 価格情報の構築
+	const priceInfo = `
+		<div class="section">
+			<div class="section-title">価格情報</div>
+			${regularPriceItem}
+			${bargainPriceItem}
+			${premiumPriceItem}
+			${originalPriceItem}
 		</div>
 		`;
 
 	// SKU情報の構築
 	// SKU別在庫を出す
 
-	// 単体ページ
-	const stockTableOneAxis = itemInfo.stockTableOneAxis;
-	// 集合ページ
-	const stockTableTwoAxis = itemInfo.stockTableTwoAxis;
-
+	// マルチSKUの場合
+	const individualItemList = itemInfo.individualItemList;
 
 	let quantity = '';
-	if (stockTableOneAxis) {
-		quantity = stockTableOneAxis.firstOption.choiceList
+	if (individualItemList) {
+		quantity = individualItemList
 			.map(function (inv) {
-				return `<div class="item">SKU: ${inv.skuId} - ${inv.choiceName}<br>在庫数：${inv.stock.quantity}</div>`;
+				return `<div class="item">
+				SKU：${inv.skuId}<br>
+				${inv.optionList
+					.map(function (opt) {
+						return `${opt.name}：${opt.choiceName}<br>`;
+					})
+					.join('')}
+				在庫数：<span class="emphasis">${inv.stock.quantity}</span></div>`;
 			})
 			.join('');
-	} else if (stockTableTwoAxis) {
-		quantity = stockTableTwoAxis.firstOption.choiceList
-			.map(function (inv) {
-				return `<div class="item">SKU: ${inv.secondOption.choiceList[0].skuId} - ${inv.secondOption.choiceList[0].choiceName}<br>在庫数：${inv.secondOption.choiceList[0].stock.quantity}</div>`;
-			})
-			.join('');
+	} else {
+		quantity = `<div class="item">在庫数：<span class="emphasis">${itemInfo.stock.quantity}</span></div>`;
 	}
 
 	const inventoryInfo =
@@ -151,6 +176,7 @@ function getYahooInfo() {
 		</div>
 		<div class="content">
 			${basicInfo}
+			${priceInfo}
 			${inventoryInfo}
 		</div>
 		`;
@@ -392,6 +418,13 @@ function getRakutenInfo() {
 	closeBtn.addEventListener('click', function () {
 		container.remove();
 	});
+}
+
+// ########################################
+
+//  既にUIが表示されている場合は削除する
+if (document.getElementById('floating-extractor')) {
+	document.getElementById('floating-extractor').remove();
 }
 
 const currentUrl = window.location.hostname;
