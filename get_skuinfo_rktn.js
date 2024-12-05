@@ -91,8 +91,6 @@ function getYahooInfo() {
 		return;
 	}
 
-	console.log(data);
-
 	const itemInfo = data.props.pageProps.item;
 
 	// コンテナの作成
@@ -105,10 +103,42 @@ function getYahooInfo() {
 			<div class="section-title">基本情報</div>
 			<div class="item">商品ID: ${itemInfo.srid}</div>
 			<div class="item">商品番号: ${itemInfo.sellerManagedItemId}</div>
-			<div class="item">商品名: ${itemInfo.name}</div>
+			<div class="item">通常価格: ¥${itemInfo.regularPrice.toLocaleString()}</div>
 			<div class="item">PRオプション料率: ${itemInfo.prRate}%</div>
 		</div>
 		`;
+
+	// SKU情報の構築
+	// SKU別在庫を出す
+
+	// 単体ページ
+	const stockTableOneAxis = itemInfo.stockTableOneAxis;
+	// 集合ページ
+	const stockTableTwoAxis = itemInfo.stockTableTwoAxis;
+
+
+	let quantity = '';
+	if (stockTableOneAxis) {
+		quantity = stockTableOneAxis.firstOption.choiceList
+			.map(function (inv) {
+				return `<div class="item">SKU: ${inv.skuId} - ${inv.choiceName}<br>在庫数：${inv.stock.quantity}</div>`;
+			})
+			.join('');
+	} else if (stockTableTwoAxis) {
+		quantity = stockTableTwoAxis.firstOption.choiceList
+			.map(function (inv) {
+				return `<div class="item">SKU: ${inv.secondOption.choiceList[0].skuId} - ${inv.secondOption.choiceList[0].choiceName}<br>在庫数：${inv.secondOption.choiceList[0].stock.quantity}</div>`;
+			})
+			.join('');
+	}
+
+	const inventoryInfo =
+		`
+		<div class="section">
+			<div class="section-title">在庫情報</div>
+			${quantity}
+		</div>
+		` || '';
 
 	// メインフレームの構築
 	const mainFrame = `
@@ -121,6 +151,7 @@ function getYahooInfo() {
 		</div>
 		<div class="content">
 			${basicInfo}
+			${inventoryInfo}
 		</div>
 		`;
 
