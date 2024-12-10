@@ -5,25 +5,25 @@ style.textContent = `
             position: fixed;
             top: 75px;
             right: 20px;
-            width: 400px;
+            width: 450px;
             background: white;
             border: 1px solid #ccc;
             border-radius: 8px;
             padding: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 999999999;
+            z-index: 999999999999999999;
             font-family: Arial, sans-serif;
             max-height: 90svh;
 			font-size: 16px;
 			}
-        #floating-extractor.minimized {
-            width: 400px;
+        #floating-extractor.widget-minimized {
+            width: 450px;
             overflow: hidden;
         }
-		#floating-extractor.minimized .content {
+		#floating-extractor.widget-minimized .widget-content {
 			max-height: 0;
 		}
-        #floating-extractor .header {
+        #floating-extractor .widget-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -33,7 +33,7 @@ style.textContent = `
             padding: 8px;
             border-radius: 4px;
         }
-        #floating-extractor .controls {
+        #floating-extractor .widget-controls {
             display: flex;
             gap: 5px;
         }
@@ -47,23 +47,64 @@ style.textContent = `
         #floating-extractor button:hover {
             background: #d0d0d0;
         }
-        #floating-extractor .content {
+        #floating-extractor .widget-content {
             padding: 0;
 			max-height: 80svh;
 			overflow-y: auto;
-        }
-        #floating-extractor .section {
+			padding-right: 10px;
+			--sb-track-color: #b7c7ce;
+			--sb-thumb-color: #6BAF8D;
+			--sb-size: 5px;
+		}
+		#floating-extractor .widget-content::-webkit-scrollbar {
+			width: var(--sb-size);
+		}
+		#floating-extractor .widget-content::-webkit-scrollbar-track {
+			background: var(--sb-track-color);
+			border-radius: 3px;
+			}
+		#floating-extractor .widget-content::-webkit-scrollbar-thumb {
+			background: var(--sb-thumb-color);
+			border-radius: 3px;
+		}
+		#floating-extractor .widget-content::-webkit-scrollbar-thumb:hover {
+			background: #555;
+		}
+		@supports not selector(::-webkit-scrollbar) {
+			#floating-extractor .widget-content {
+				scrollbar-color: var(--sb-thumb-color)
+								var(--sb-track-color);
+			}
+		}
+        #floating-extractor .widget-section {
             margin-bottom: 15px;
             padding: 10px;
             background: #ededed;
             border-radius: 4px;
         }
+        #floating-extractor .widget-section table {
+            width: 100%;
+			border-collapse: separate;
+			border-spacing: 2px
+        }
+        #floating-extractor .widget-section table th {
+            vertical-align: middle;
+			word-break: keep-all;
+        }
+        #floating-extractor .widget-section table td {
+            text-align: left;
+			padding: 5px;
+			word-break: break-all;
+        }
+        #floating-extractor .widget-section table td.price {
+			word-break: normal;
+        }
         #floating-extractor .section-title {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             color: #333;
         }
-        #floating-extractor .item {
+        #floating-extractor .section-item {
             margin: 5px 0;
             padding: 5px;
             background: white;
@@ -71,12 +112,16 @@ style.textContent = `
 			line-height: 1.5;
 			float: none;
         }
-        #floating-extractor .review {
+        #floating-extractor .section-item a {
+            text-decoration: underline;
+			color: #0077cc;
+        }
+        #floating-extractor .section-review {
             border-left: 3px solid #4caf50;
             padding-left: 10px;
             margin: 10px 0;
         }
-		.emphasis {
+		#floating-extractor .emphasis {
 			font-weight: bold;
 		}
     `;
@@ -107,11 +152,11 @@ function getYahooInfo() {
 
 	// 基本情報の構築
 	const basicInfo = `
-		<div class="section">
+		<div class="widget-section">
 			<div class="section-title">基本情報</div>
-			<div class="item">商品ID：${itemInfo.srid}</div>
-			<div class="item">商品番号：${itemInfo.sellerManagedItemId}</div>
-			<div class="item">PRオプション料率：<span class="emphasis">${itemInfo.prRate}%</span></div>
+			<div class="section-item">商品ID：${itemInfo.srid}</div>
+			<div class="section-item">商品番号：${itemInfo.sellerManagedItemId}</div>
+			<div class="section-item">PRオプション料率：<span class="emphasis">${itemInfo.prRate}%</span></div>
 		</div>
 		`;
 
@@ -121,14 +166,14 @@ function getYahooInfo() {
 	const premiumPrice = itemInfo.premiumPrice;
 	const originalPrice = itemInfo.originalPrice;
 
-	const regularPriceItem = regularPrice ? `<div class="item">通常価格：<span class="emphasis">¥${regularPrice.toLocaleString()}</span></div>` : '';
-	const bargainPriceItem = bargainPrice ? `<div class="item">セール価格：<span class="emphasis">¥${bargainPrice.toLocaleString()}</span></div>` : '';
-	const premiumPriceItem = premiumPrice ? `<div class="item">LYPプレミアム会員価格：<span class="emphasis">¥${premiumPrice.toLocaleString()}</span></div>` : '';
-	const originalPriceItem = originalPrice ? `<div class="item">メーカー希望小売価格：<span class="emphasis">¥${originalPrice.toLocaleString()}</span></div>` : '';
+	const regularPriceItem = regularPrice ? `<div class="section-item">通常価格：<span class="emphasis">¥${regularPrice.toLocaleString()}</span></div>` : '';
+	const bargainPriceItem = bargainPrice ? `<div class="section-item">セール価格：<span class="emphasis">¥${bargainPrice.toLocaleString()}</span></div>` : '';
+	const premiumPriceItem = premiumPrice ? `<div class="section-item">LYPプレミアム会員価格：<span class="emphasis">¥${premiumPrice.toLocaleString()}</span></div>` : '';
+	const originalPriceItem = originalPrice ? `<div class="section-item">メーカー希望小売価格：<span class="emphasis">¥${originalPrice.toLocaleString()}</span></div>` : '';
 
 	// 価格情報の構築
 	const priceInfo = `
-		<div class="section">
+		<div class="widget-section">
 			<div class="section-title">価格情報</div>
 			${regularPriceItem}
 			${bargainPriceItem}
@@ -147,38 +192,54 @@ function getYahooInfo() {
 	if (individualItemList) {
 		quantity = individualItemList
 			.map(function (inv) {
-				return `<div class="item">
-				SKU：${inv.skuId}<br>
-				${inv.optionList
-					.map(function (opt) {
-						return `${opt.name}：${opt.choiceName}<br>`;
-					})
-					.join('')}
-				在庫数：<span class="emphasis">${inv.stock.quantity}</span></div>`;
+				return `<tr class="section-item">
+							<td>${inv.skuId}</td>
+							<td>
+							${inv.optionList
+								.map(function (opt) {
+									return `${opt.name}：${opt.choiceName}<br>`;
+								})
+								.join('')}
+							</td>
+							<td><span class="emphasis">${inv.stock.quantity}</span></td>
+						</tr>`;
 			})
 			.join('');
 	} else {
-		quantity = `<div class="item">在庫数：<span class="emphasis">${itemInfo.stock.quantity}</span></div>`;
+		quantity = `<tr class="section-item">
+						<td>-</td>
+						<td>-</td>
+						<td><span class="emphasis">${itemInfo.stock.quantity}</span></td>
+					</tr>`;
 	}
 
 	const inventoryInfo =
-		`
-		<div class="section">
-			<div class="section-title">在庫情報</div>
-			${quantity}
-		</div>
-		` || '';
+		quantity !== ''
+			? `
+				<div class="widget-section">
+					<div class="section-title">在庫情報</div>
+					<table>
+						<tr>
+							<th>SKU</th>
+							<th>バリエーション</th>
+							<th>在庫数</th>
+						</tr>
+						${quantity}
+					</table>
+				</div>
+				`
+			: '';
 
 	// メインフレームの構築
 	const mainFrame = `
-		<div class="header">
+		<div class="widget-header">
 			<span>商品情報抽出</span>
-			<div class="controls">
-				<button class="minimize">_</button>
-				<button class="close">×</button>
+			<div class="widget-controls">
+				<button class="widget-minimize">_</button>
+				<button class="widget-close">×</button>
 			</div>
 		</div>
-		<div class="content">
+		<div class="widget-content">
 			${basicInfo}
 			${priceInfo}
 			${inventoryInfo}
@@ -269,18 +330,18 @@ async function getRakutenInfo() {
 
 	// 最高価格の追加（存在する場合）
 	const maxPrice = itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.maxPrice;
-	const maxPriceHtml = maxPrice ? '<div class="item">最高価格: ¥' + maxPrice.toLocaleString() + '</div>' : '';
+	const maxPriceHtml = maxPrice ? '<div class="section-item">最高価格: ¥' + maxPrice.toLocaleString() + '</div>' : '';
 
 	// 最低価格の定義
 	const minPrice = itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.minPrice;
 
 	// 基本情報の構築
 	const basicInfo = `
-		<div class="section">
+		<div class="widget-section">
 			<div class="section-title">基本情報</div>
-			<div class="item">商品ID：${itemInfo.itemId}</div>
-			<div class="item">商品番号：${itemInfo.manageNumber}</div>
-			<div class="item">最低価格：¥${minPrice.toLocaleString()}</div>
+			<div class="section-item">商品ID：${itemInfo.itemId}</div>
+			<div class="section-item">商品番号：${itemInfo.manageNumber}</div>
+			<div class="section-item emphasis">最低価格：¥${minPrice.toLocaleString()}</div>
 			${maxPriceHtml}
 		</div>
 		`;
@@ -296,54 +357,80 @@ async function getRakutenInfo() {
 	if (classifiedSKU == 'マルチSKU') {
 		quantity = itemInfo.purchaseInfo.sku
 			.map(function (inv) {
-				return `<div class="item">SKU: ${inv.variantId} - 在庫数: ${inv.newPurchaseSku.quantity}</div>`;
+				return `<tr class="section-item">
+							<td>${inv.variantId}</td>
+							<td class="emphasis">${inv.newPurchaseSku.quantity}</td>
+						</tr>
+						`;
 			})
 			.join('');
 		skuPrice = itemInfo.sku
 			.map(function (inv) {
-				return `<div class="item">SKU：${inv.variantId} - ${inv.selectorValues}<br>価格：¥${inv.taxIncludedPrice}</div>`;
+				return `<tr class="section-item">
+							<td>${inv.variantId}</td>
+							<td>${inv.selectorValues}</td>
+							<td class="price emphasis">¥${inv.taxIncludedPrice.toLocaleString()}</td>
+						</tr>
+						`;
 			})
 			.join('');
 	} else if (classifiedSKU == 'シングルSKU') {
 		quantity = itemInfo.purchaseInfo.variantMappedInventories
 			.map(function (inv) {
-				return `<div class="item">SKU：${inv.sku} - 在庫数：${inv.quantity}</div>`;
+				return `<tr class="section-item">
+							<td>${inv.sku}</td>
+							<td class="emphasis">${inv.quantity}</td>
+						</tr>
+						`;
 			})
 			.join('');
-		skuPrice = '<div class="item">シングルSKUページのためSKU価格情報は表示されません。</div>';
+		skuPrice = '<div class="section-item">シングルSKUページのためSKU価格情報は表示されません。</div>';
 	}
 
 	const inventoryInfo =
 		`
-		<div class="section">
+		<div class="widget-section">
 			<div class="section-title">在庫情報</div>
-			${quantity}
+			<table>
+				<tr>
+					<th>SKU</th>
+					<th>在庫数</th>
+				</tr>
+				${quantity}
+			</table>
 		</div>
 		` || '';
 
 	const skuInfo =
 		`
-		<div class="section">
+		<div class="widget-section">
 			<div class="section-title">SKU価格情報</div>
-			${skuPrice}
+			<table>
+				<tr>
+					<th>SKU</th>
+					<th>バリエーション</th>
+					<th>価格</th>
+				</tr>
+				${skuPrice}
+			</table>
 		</div>
 		` || '';
 
 	// レビュー情報の構築
 	const reviewInfo = `
-		<div class="section">
+		<div class="widget-section">
 			<div class="section-title">レビュー情報</div>
-			<div class="item">総レビュー数：
+			<div class="section-item">総レビュー数：
 				${itemInfo.itemReviewInfo.summary.itemReviewCount}
 			</div>
-			<div class="item">平均評価：
+			<div class="section-item">平均評価：
 				${itemInfo.itemReviewInfo.summary.itemReviewRating}
 			</div>
 			${reviews
 				.slice(0, 3)
 				.map(function (review) {
 					return `
-						<div class="review">
+						<div class="section-review">
 							<div>評価：${review.evaluation} 点</div>
 							<div>投稿者：${review.nickName} </div>
 							<div>コメント：${review.review} </div>
@@ -365,7 +452,7 @@ async function getRakutenInfo() {
 			? couponData.coupons
 					.map(function (coupon) {
 						return `
-						<div class="item">
+						<div class="section-item">
 							<p><a href="${couponBaseUrl}${coupon.getKey}">${coupon.couponName}</a></p>
 							<p>開始：${formatDateToCustomFormat(coupon.couponStartDate)}</p>
 							<p>終了：${formatDateToCustomFormat(coupon.couponEndDate)}</p>
@@ -376,7 +463,7 @@ async function getRakutenInfo() {
 			: '現在利用できるクーポンは発行されていません。';
 
 	const couponInfo = `
-		<div class="section">
+		<div class="widget-section">
 			<div class="section-title">クーポン情報</div>
 			${coupons}
 		</div>
@@ -384,14 +471,14 @@ async function getRakutenInfo() {
 
 	// メインフレームの構築
 	const mainFrame = `
-		<div class="header">
+		<div class="widget-header">
 			<span>商品情報抽出</span>
-			<div class="controls">
-				<button class="minimize">_</button>
-				<button class="close">×</button>
+			<div class="widget-controls">
+				<button class="widget-minimize">_</button>
+				<button class="widget-close">×</button>
 			</div>
 		</div>
-		<div class="content">
+		<div class="widget-content">
 			${basicInfo}
 			${inventoryInfo}
 			${skuInfo}
@@ -413,7 +500,7 @@ async function getRakutenInfo() {
 	let xOffset = 0;
 	let yOffset = 0;
 
-	const header = container.querySelector('.header');
+	const header = container.querySelector('.widget-header');
 
 	header.addEventListener('mousedown', dragStart);
 	document.addEventListener('mousemove', drag);
@@ -445,14 +532,14 @@ async function getRakutenInfo() {
 	}
 
 	// 最小化ボタンの機能
-	const minimizeBtn = container.querySelector('.minimize');
+	const minimizeBtn = container.querySelector('.widget-minimize');
 	minimizeBtn.addEventListener('click', function () {
-		container.classList.toggle('minimized');
-		minimizeBtn.textContent = container.classList.contains('minimized') ? '□' : '_';
+		container.classList.toggle('widget-minimized');
+		minimizeBtn.textContent = container.classList.contains('widget-minimized') ? '□' : '_';
 	});
 
 	// 閉じるボタンの機能
-	const closeBtn = container.querySelector('.close');
+	const closeBtn = container.querySelector('.widget-close');
 	closeBtn.addEventListener('click', function () {
 		container.remove();
 	});
