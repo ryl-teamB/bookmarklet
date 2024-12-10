@@ -13,15 +13,16 @@ style.textContent = `
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             z-index: 999999999;
             font-family: Arial, sans-serif;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-height: 90svh;
 			font-size: 16px;
-        }
+			}
         #floating-extractor.minimized {
             width: 400px;
-            height: 63px;
             overflow: hidden;
         }
+		#floating-extractor.minimized .content {
+			max-height: 0;
+		}
         #floating-extractor .header {
             display: flex;
             justify-content: space-between;
@@ -48,6 +49,8 @@ style.textContent = `
         }
         #floating-extractor .content {
             padding: 0;
+			max-height: 80svh;
+			overflow-y: auto;
         }
         #floating-extractor .section {
             margin-bottom: 15px;
@@ -66,6 +69,7 @@ style.textContent = `
             background: white;
             border-radius: 2px;
 			line-height: 1.5;
+			float: none;
         }
         #floating-extractor .review {
             border-left: 3px solid #4caf50;
@@ -238,7 +242,7 @@ function getYahooInfo() {
 		container.remove();
 	});
 }
-function getRakutenInfo() {
+async function getRakutenInfo() {
 	document.head.appendChild(style);
 
 	// データの取得と解析
@@ -267,13 +271,16 @@ function getRakutenInfo() {
 	const maxPrice = itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.maxPrice;
 	const maxPriceHtml = maxPrice ? '<div class="item">最高価格: ¥' + maxPrice.toLocaleString() + '</div>' : '';
 
+	// 最低価格の定義
+	const minPrice = itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.minPrice;
+
 	// 基本情報の構築
 	const basicInfo = `
 		<div class="section">
 			<div class="section-title">基本情報</div>
-			<div class="item">商品ID: ${itemInfo.itemId}</div>
-			<div class="item">商品番号: ${itemInfo.manageNumber}</div>
-			<div class="item">最低価格: ¥${itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.minPrice.toLocaleString()}</div>
+			<div class="item">商品ID：${itemInfo.itemId}</div>
+			<div class="item">商品番号：${itemInfo.manageNumber}</div>
+			<div class="item">最低価格：¥${minPrice.toLocaleString()}</div>
 			${maxPriceHtml}
 		</div>
 		`;
@@ -282,7 +289,7 @@ function getRakutenInfo() {
 
 	// シングルSKUとマルチSKUで取得する項目を分ける
 	const classifiedSKU = itemInfo.purchaseInfo.sku.length > 0 ? 'マルチSKU' : 'シングルSKU';
-	// alert(classifiedSKU);
+	// console.log(classifiedSKU);
 
 	let quantity = '';
 	let skuPrice = '';
@@ -294,13 +301,13 @@ function getRakutenInfo() {
 			.join('');
 		skuPrice = itemInfo.sku
 			.map(function (inv) {
-				return `<div class="item">SKU: ${inv.variantId} - ${inv.selectorValues}<br>価格: ¥${inv.taxIncludedPrice}</div>`;
+				return `<div class="item">SKU：${inv.variantId} - ${inv.selectorValues}<br>価格：¥${inv.taxIncludedPrice}</div>`;
 			})
 			.join('');
 	} else if (classifiedSKU == 'シングルSKU') {
 		quantity = itemInfo.purchaseInfo.variantMappedInventories
 			.map(function (inv) {
-				return `<div class="item">SKU: ${inv.sku} - 在庫数: ${inv.quantity}</div>`;
+				return `<div class="item">SKU：${inv.sku} - 在庫数：${inv.quantity}</div>`;
 			})
 			.join('');
 		skuPrice = '<div class="item">シングルSKUページのためSKU価格情報は表示されません。</div>';
@@ -326,10 +333,10 @@ function getRakutenInfo() {
 	const reviewInfo = `
 		<div class="section">
 			<div class="section-title">レビュー情報</div>
-			<div class="item">総レビュー数: 
+			<div class="item">総レビュー数：
 				${itemInfo.itemReviewInfo.summary.itemReviewCount}
 			</div>
-			<div class="item">平均評価: 
+			<div class="item">平均評価：
 				${itemInfo.itemReviewInfo.summary.itemReviewRating}
 			</div>
 			${reviews
@@ -337,12 +344,42 @@ function getRakutenInfo() {
 				.map(function (review) {
 					return `
 						<div class="review">
-							<div>評価: ${review.evaluation} 点</div>
-							<div>投稿者: ${review.nickName} </div>
-							<div>コメント: ${review.review} </div>
+							<div>評価：${review.evaluation} 点</div>
+							<div>投稿者：${review.nickName} </div>
+							<div>コメント：${review.review} </div>
 						</div>`;
 				})
 				.join('')}
+		</div>
+		`;
+
+	// クーポン情報を取得する
+	const result = await fetchCouponData(itemInfo, minPrice);
+	const resultJson = JSON.parse(result);
+	const couponData = resultJson.items[0];
+
+	const couponBaseUrl = 'https://coupon.rakuten.co.jp/getCoupon?getkey=';
+	// クーポン情報のHTML構築
+	const coupons =
+		resultJson && couponData.coupons.length > 0
+			? couponData.coupons
+					.map(function (coupon) {
+						return `
+						<div class="item">
+							<p><a href="${couponBaseUrl}${coupon.getKey}">${coupon.couponName}</a></p>
+							<p>開始：${formatDateToCustomFormat(coupon.couponStartDate)}</p>
+							<p>終了：${formatDateToCustomFormat(coupon.couponEndDate)}</p>
+						</div>
+						`;
+					})
+					.join('')
+			: '現在利用できるクーポンは発行されていません。';
+
+	const couponInfo = `
+		<div class="section">
+			<div class="section-title">クーポン情報</div>
+			${coupons}
+		</div>
 		`;
 
 	// メインフレームの構築
@@ -358,6 +395,7 @@ function getRakutenInfo() {
 			${basicInfo}
 			${inventoryInfo}
 			${skuInfo}
+			${couponInfo}
 			${reviewInfo}
 		</div>
 		`;
@@ -420,6 +458,78 @@ function getRakutenInfo() {
 	});
 }
 
+// 楽天のクーポン情報を取得する
+
+function fetchCouponData(itemInfo, minPrice) {
+	const callbackName = `jsonp${Math.floor(Math.random() * 9000000000000)}`;
+	const params = {
+		items: `["itemId=${itemInfo.itemId}&price=${minPrice}&shopId=${itemInfo.shopId}"]`,
+		locId: '101',
+		options: '["incAcqCond=true"]',
+		callback: callbackName,
+		_: Date.now(), // キャッシュバスター
+	};
+
+	const baseUrl = 'https://api.coupon.rakuten.co.jp/search';
+	const queryString = Object.entries(params)
+		.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+		.join('&');
+
+	const url = `${baseUrl}?${queryString}`;
+
+	return new Promise((resolve, reject) => {
+		// JSONP用のスクリプトタグを作成
+		const script = document.createElement('script');
+		script.src = url;
+		// コールバック関数を定義
+		window[params.callback] = function (responce) {
+			// const data = responce;
+			const data = JSON.stringify(responce);
+			try {
+				if (data && data.length > 0) {
+					resolve(data);
+					// alert(data);
+				} else {
+					reject(new Error('データが空です'));
+				}
+			} catch (error) {
+				reject(error);
+			} finally {
+				// 必要ならスクリプトタグを削除
+				document.body.removeChild(script);
+
+				// コールバック関数も削除
+				delete window[params.callback];
+			}
+		};
+
+		script.onerror = () => {
+			reject(new Error('スクリプトのロードに失敗しました'));
+			if (script.parentNode) {
+				document.body.removeChild(script);
+			}
+			delete window[params.callback];
+		};
+
+		// スクリプトをDOMに追加
+		document.body.appendChild(script);
+	});
+}
+
+function formatDateToCustomFormat(isoDate) {
+	const date = new Date(isoDate); // ISO形式の文字列をDateオブジェクトに変換
+
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0始まりなので+1
+	const day = String(date.getDate()).padStart(2, '0');
+	const hours = String(date.getHours()).padStart(2, '0');
+	const minutes = String(date.getMinutes()).padStart(2, '0');
+	const seconds = String(date.getSeconds()).padStart(2, '0');
+
+	// フォーマットに組み立てる
+	return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
+}
+
 // ########################################
 
 //  既にUIが表示されている場合は削除する
@@ -429,10 +539,10 @@ if (document.getElementById('floating-extractor')) {
 
 const currentUrl = window.location.hostname;
 if (currentUrl.includes('rakuten')) {
-	// console.log('RAKUTEN');
+	console.log('RAKUTEN');
 	getRakutenInfo();
 } else if (currentUrl.includes('yahoo')) {
-	// console.log('YAHOO');
+	console.log('YAHOO');
 	getYahooInfo();
 } else {
 	alert('このサイトには対応していません。');
