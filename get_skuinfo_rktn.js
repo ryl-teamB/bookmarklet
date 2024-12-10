@@ -193,7 +193,7 @@ function getYahooInfo() {
 	const individualItemList = itemInfo.individualItemList;
 
 	let quantity = '';
-	if (individualItemList) {
+	if (individualItemList.length > 0) {
 		quantity = individualItemList
 			.map(function (inv) {
 				return `<tr class="section-item">
