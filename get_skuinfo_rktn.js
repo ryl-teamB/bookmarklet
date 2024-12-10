@@ -95,6 +95,8 @@ style.textContent = `
             text-align: left;
 			padding: 5px;
 			word-break: break-all;
+			font-size: 16px;
+			font-family: Arial, sans-serif;
         }
         #floating-extractor .widget-section table td.price {
 			word-break: normal;
@@ -115,6 +117,8 @@ style.textContent = `
         #floating-extractor .section-item a {
             text-decoration: underline;
 			color: #0077cc;
+			font-size: 16px;
+			font-family: Arial, sans-serif;
         }
         #floating-extractor .section-review {
             border-left: 3px solid #4caf50;
@@ -330,7 +334,7 @@ async function getRakutenInfo() {
 
 	// 最高価格の追加（存在する場合）
 	const maxPrice = itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.maxPrice;
-	const maxPriceHtml = maxPrice ? '<div class="section-item">最高価格: ¥' + maxPrice.toLocaleString() + '</div>' : '';
+	const maxPriceHtml = maxPrice ? '<div class="section-item emphasis">最高価格: ¥' + maxPrice.toLocaleString() + '</div>' : '';
 
 	// 最低価格の定義
 	const minPrice = itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.minPrice;
