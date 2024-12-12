@@ -447,7 +447,8 @@ async function getRakutenInfo() {
 	// クーポン情報を取得する
 	const result = await fetchCouponData(itemInfo, minPrice);
 	const resultJson = JSON.parse(result);
-	const couponData = resultJson.items[0].length > 0 ? resultJson.items[0] : null;
+	// alert(resultJson);
+	const couponData = resultJson.items && resultJson.items[0] && resultJson.items[0].length > 0 ? resultJson.items[0] : null;
 	// alert(couponData);
 
 	const couponBaseUrl = 'https://coupon.rakuten.co.jp/getCoupon?getkey=';
