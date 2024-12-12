@@ -1,6 +1,8 @@
-// スタイルの作成と追加
-const style = document.createElement('style');
-style.textContent = `
+// 即時実行関数としてスコープを限定する
+(() => {
+	// スタイルの作成と追加
+	const style = document.createElement('style');
+	style.textContent = `
         #floating-extractor {
             position: fixed;
             top: 75px;
@@ -130,32 +132,32 @@ style.textContent = `
 		}
     `;
 
-function getYahooInfo() {
-	document.head.appendChild(style);
+	function getYahooInfo() {
+		document.head.appendChild(style);
 
-	// データの取得と解析
-	const scriptElement = document.getElementById('__NEXT_DATA__');
-	if (!scriptElement) {
-		alert('データが見つかりませんでした');
-		return;
-	}
+		// データの取得と解析
+		const scriptElement = document.getElementById('__NEXT_DATA__');
+		if (!scriptElement) {
+			alert('データが見つかりませんでした');
+			return;
+		}
 
-	let data;
-	try {
-		data = JSON.parse(scriptElement.textContent);
-	} catch (e) {
-		alert('JSONの解析に失敗しました：' + e.message);
-		return;
-	}
+		let data;
+		try {
+			data = JSON.parse(scriptElement.textContent);
+		} catch (e) {
+			alert('JSONの解析に失敗しました：' + e.message);
+			return;
+		}
 
-	const itemInfo = data.props.pageProps.item;
+		const itemInfo = data.props.pageProps.item;
 
-	// コンテナの作成
-	const container = document.createElement('div');
-	container.id = 'floating-extractor';
+		// コンテナの作成
+		const container = document.createElement('div');
+		container.id = 'floating-extractor';
 
-	// 基本情報の構築
-	const basicInfo = `
+		// 基本情報の構築
+		const basicInfo = `
 		<div class="widget-section">
 			<div class="section-title">基本情報</div>
 			<div class="section-item">商品ID：${itemInfo.srid}</div>
@@ -164,19 +166,19 @@ function getYahooInfo() {
 		</div>
 		`;
 
-	// 価格情報の取得
-	const regularPrice = itemInfo.regularPrice;
-	const bargainPrice = itemInfo.bargainPrice;
-	const premiumPrice = itemInfo.premiumPrice;
-	const originalPrice = itemInfo.originalPrice;
+		// 価格情報の取得
+		const regularPrice = itemInfo.regularPrice;
+		const bargainPrice = itemInfo.bargainPrice;
+		const premiumPrice = itemInfo.premiumPrice;
+		const originalPrice = itemInfo.originalPrice;
 
-	const regularPriceItem = regularPrice ? `<div class="section-item">通常価格：<span class="emphasis">¥${regularPrice.toLocaleString()}</span></div>` : '';
-	const bargainPriceItem = bargainPrice ? `<div class="section-item">セール価格：<span class="emphasis">¥${bargainPrice.toLocaleString()}</span></div>` : '';
-	const premiumPriceItem = premiumPrice ? `<div class="section-item">LYPプレミアム会員価格：<span class="emphasis">¥${premiumPrice.toLocaleString()}</span></div>` : '';
-	const originalPriceItem = originalPrice ? `<div class="section-item">メーカー希望小売価格：<span class="emphasis">¥${originalPrice.toLocaleString()}</span></div>` : '';
+		const regularPriceItem = regularPrice ? `<div class="section-item">通常価格：<span class="emphasis">¥${regularPrice.toLocaleString()}</span></div>` : '';
+		const bargainPriceItem = bargainPrice ? `<div class="section-item">セール価格：<span class="emphasis">¥${bargainPrice.toLocaleString()}</span></div>` : '';
+		const premiumPriceItem = premiumPrice ? `<div class="section-item">LYPプレミアム会員価格：<span class="emphasis">¥${premiumPrice.toLocaleString()}</span></div>` : '';
+		const originalPriceItem = originalPrice ? `<div class="section-item">メーカー希望小売価格：<span class="emphasis">¥${originalPrice.toLocaleString()}</span></div>` : '';
 
-	// 価格情報の構築
-	const priceInfo = `
+		// 価格情報の構築
+		const priceInfo = `
 		<div class="widget-section">
 			<div class="section-title">価格情報</div>
 			${regularPriceItem}
@@ -186,17 +188,17 @@ function getYahooInfo() {
 		</div>
 		`;
 
-	// SKU情報の構築
-	// SKU別在庫を出す
+		// SKU情報の構築
+		// SKU別在庫を出す
 
-	// マルチSKUの場合
-	const individualItemList = itemInfo.individualItemList;
+		// マルチSKUの場合
+		const individualItemList = itemInfo.individualItemList;
 
-	let quantity = '';
-	if (individualItemList.length > 0) {
-		quantity = individualItemList
-			.map(function (inv) {
-				return `<tr class="section-item">
+		let quantity = '';
+		if (individualItemList.length > 0) {
+			quantity = individualItemList
+				.map(function (inv) {
+					return `<tr class="section-item">
 							<td>${inv.skuId}</td>
 							<td>
 							${inv.optionList
@@ -207,19 +209,19 @@ function getYahooInfo() {
 							</td>
 							<td><span class="emphasis">${inv.stock.quantity}</span></td>
 						</tr>`;
-			})
-			.join('');
-	} else {
-		quantity = `<tr class="section-item">
+				})
+				.join('');
+		} else {
+			quantity = `<tr class="section-item">
 						<td>-</td>
 						<td>-</td>
 						<td><span class="emphasis">${itemInfo.stock.quantity}</span></td>
 					</tr>`;
-	}
+		}
 
-	const inventoryInfo =
-		quantity !== ''
-			? `
+		const inventoryInfo =
+			quantity !== ''
+				? `
 				<div class="widget-section">
 					<div class="section-title">在庫情報</div>
 					<table>
@@ -232,10 +234,10 @@ function getYahooInfo() {
 					</table>
 				</div>
 				`
-			: '';
+				: '';
 
-	// メインフレームの構築
-	const mainFrame = `
+		// メインフレームの構築
+		const mainFrame = `
 		<div class="widget-header">
 			<span>商品情報抽出</span>
 			<div class="widget-controls">
@@ -250,97 +252,97 @@ function getYahooInfo() {
 		</div>
 		`;
 
-	// すべての情報を結合
-	container.innerHTML = mainFrame;
-	document.body.appendChild(container);
+		// すべての情報を結合
+		container.innerHTML = mainFrame;
+		document.body.appendChild(container);
 
-	// ドラッグ機能の実装
-	let isDragging = false;
-	let currentX;
-	let currentY;
-	let initialX;
-	let initialY;
-	let xOffset = 0;
-	let yOffset = 0;
+		// ドラッグ機能の実装
+		let isDragging = false;
+		let currentX;
+		let currentY;
+		let initialX;
+		let initialY;
+		let xOffset = 0;
+		let yOffset = 0;
 
-	const header = container.querySelector('.header');
+		const header = container.querySelector('.header');
 
-	header.addEventListener('mousedown', dragStart);
-	document.addEventListener('mousemove', drag);
-	document.addEventListener('mouseup', dragEnd);
+		header.addEventListener('mousedown', dragStart);
+		document.addEventListener('mousemove', drag);
+		document.addEventListener('mouseup', dragEnd);
 
-	function dragStart(e) {
-		initialX = e.clientX - xOffset;
-		initialY = e.clientY - yOffset;
-		if (e.target === header) {
-			isDragging = true;
+		function dragStart(e) {
+			initialX = e.clientX - xOffset;
+			initialY = e.clientY - yOffset;
+			if (e.target === header) {
+				isDragging = true;
+			}
 		}
-	}
 
-	function drag(e) {
-		if (isDragging) {
-			e.preventDefault();
-			currentX = e.clientX - initialX;
-			currentY = e.clientY - initialY;
-			xOffset = currentX;
-			yOffset = currentY;
-			container.style.transform = 'translate(' + currentX + 'px, ' + currentY + 'px)';
+		function drag(e) {
+			if (isDragging) {
+				e.preventDefault();
+				currentX = e.clientX - initialX;
+				currentY = e.clientY - initialY;
+				xOffset = currentX;
+				yOffset = currentY;
+				container.style.transform = 'translate(' + currentX + 'px, ' + currentY + 'px)';
+			}
 		}
+
+		function dragEnd() {
+			initialX = currentX;
+			initialY = currentY;
+			isDragging = false;
+		}
+
+		// 最小化ボタンの機能
+		const minimizeBtn = container.querySelector('.minimize');
+		minimizeBtn.addEventListener('click', function () {
+			container.classList.toggle('minimized');
+			minimizeBtn.textContent = container.classList.contains('minimized') ? '□' : '_';
+		});
+
+		// 閉じるボタンの機能
+		const closeBtn = container.querySelector('.close');
+		closeBtn.addEventListener('click', function () {
+			container.remove();
+		});
 	}
+	async function getRakutenInfo() {
+		document.head.appendChild(style);
 
-	function dragEnd() {
-		initialX = currentX;
-		initialY = currentY;
-		isDragging = false;
-	}
+		// データの取得と解析
+		const scriptElement = document.getElementById('item-page-app-data');
+		if (!scriptElement) {
+			alert('データが見つかりませんでした');
+			return;
+		}
 
-	// 最小化ボタンの機能
-	const minimizeBtn = container.querySelector('.minimize');
-	minimizeBtn.addEventListener('click', function () {
-		container.classList.toggle('minimized');
-		minimizeBtn.textContent = container.classList.contains('minimized') ? '□' : '_';
-	});
+		let data;
+		try {
+			data = JSON.parse(scriptElement.textContent);
+		} catch (e) {
+			alert('JSONの解析に失敗しました: ' + e.message);
+			return;
+		}
 
-	// 閉じるボタンの機能
-	const closeBtn = container.querySelector('.close');
-	closeBtn.addEventListener('click', function () {
-		container.remove();
-	});
-}
-async function getRakutenInfo() {
-	document.head.appendChild(style);
+		const itemInfo = data.api.data.itemInfoSku;
+		const reviews = itemInfo.itemReviewInfo?.reviews || [];
 
-	// データの取得と解析
-	const scriptElement = document.getElementById('item-page-app-data');
-	if (!scriptElement) {
-		alert('データが見つかりませんでした');
-		return;
-	}
+		// コンテナの作成
+		const container = document.createElement('div');
+		container.id = 'floating-extractor';
 
-	let data;
-	try {
-		data = JSON.parse(scriptElement.textContent);
-	} catch (e) {
-		alert('JSONの解析に失敗しました: ' + e.message);
-		return;
-	}
+		// 最高価格の追加（存在する場合）
+		const maxPrice = itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.maxPrice;
+		const maxPriceHtml = maxPrice ? '<div class="section-item emphasis">最高価格: ¥' + maxPrice.toLocaleString() + '</div>' : '';
 
-	const itemInfo = data.api.data.itemInfoSku;
-	const reviews = itemInfo.itemReviewInfo?.reviews || [];
+		// 最低価格の定義
+		const minPrice = itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.minPrice;
 
-	// コンテナの作成
-	const container = document.createElement('div');
-	container.id = 'floating-extractor';
-
-	// 最高価格の追加（存在する場合）
-	const maxPrice = itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.maxPrice;
-	const maxPriceHtml = maxPrice ? '<div class="section-item emphasis">最高価格: ¥' + maxPrice.toLocaleString() + '</div>' : '';
-
-	// 最低価格の定義
-	const minPrice = itemInfo.purchaseInfo.purchaseBySellType.normalPurchase.price.minPrice;
-
-	// 基本情報の構築
-	const basicInfo = `
+		// 基本情報の構築
+		const basicInfo = `
 		<div class="widget-section">
 			<div class="section-title">基本情報</div>
 			<div class="section-item">商品ID：${itemInfo.itemId}</div>
@@ -350,49 +352,49 @@ async function getRakutenInfo() {
 		</div>
 		`;
 
-	// SKU情報の構築
+		// SKU情報の構築
 
-	// シングルSKUとマルチSKUで取得する項目を分ける
-	const classifiedSKU = itemInfo.purchaseInfo.sku.length > 0 ? 'マルチSKU' : 'シングルSKU';
-	// console.log(classifiedSKU);
+		// シングルSKUとマルチSKUで取得する項目を分ける
+		const classifiedSKU = itemInfo.purchaseInfo.sku.length > 0 ? 'マルチSKU' : 'シングルSKU';
+		// console.log(classifiedSKU);
 
-	let quantity = '';
-	let skuPrice = '';
-	if (classifiedSKU == 'マルチSKU') {
-		quantity = itemInfo.purchaseInfo.sku
-			.map(function (inv) {
-				return `<tr class="section-item">
+		let quantity = '';
+		let skuPrice = '';
+		if (classifiedSKU == 'マルチSKU') {
+			quantity = itemInfo.purchaseInfo.sku
+				.map(function (inv) {
+					return `<tr class="section-item">
 							<td>${inv.variantId}</td>
 							<td class="emphasis">${inv.newPurchaseSku.quantity}</td>
 						</tr>
 						`;
-			})
-			.join('');
-		skuPrice = itemInfo.sku
-			.map(function (inv) {
-				return `<tr class="section-item">
+				})
+				.join('');
+			skuPrice = itemInfo.sku
+				.map(function (inv) {
+					return `<tr class="section-item">
 							<td>${inv.variantId}</td>
 							<td>${inv.selectorValues}</td>
 							<td class="price emphasis">¥${inv.taxIncludedPrice.toLocaleString()}</td>
 						</tr>
 						`;
-			})
-			.join('');
-	} else if (classifiedSKU == 'シングルSKU') {
-		quantity = itemInfo.purchaseInfo.variantMappedInventories
-			.map(function (inv) {
-				return `<tr class="section-item">
+				})
+				.join('');
+		} else if (classifiedSKU == 'シングルSKU') {
+			quantity = itemInfo.purchaseInfo.variantMappedInventories
+				.map(function (inv) {
+					return `<tr class="section-item">
 							<td>${inv.sku}</td>
 							<td class="emphasis">${inv.quantity}</td>
 						</tr>
 						`;
-			})
-			.join('');
-		skuPrice = '<div class="section-item">シングルSKUページのためSKU価格情報は表示されません。</div>';
-	}
+				})
+				.join('');
+			skuPrice = '<div class="section-item">シングルSKUページのためSKU価格情報は表示されません。</div>';
+		}
 
-	const inventoryInfo =
-		`
+		const inventoryInfo =
+			`
 		<div class="widget-section">
 			<div class="section-title">在庫情報</div>
 			<table>
@@ -405,8 +407,8 @@ async function getRakutenInfo() {
 		</div>
 		` || '';
 
-	const skuInfo =
-		`
+		const skuInfo =
+			`
 		<div class="widget-section">
 			<div class="section-title">SKU価格情報</div>
 			<table>
@@ -420,8 +422,8 @@ async function getRakutenInfo() {
 		</div>
 		` || '';
 
-	// レビュー情報の構築
-	const reviewInfo = `
+		// レビュー情報の構築
+		const reviewInfo = `
 		<div class="widget-section">
 			<div class="section-title">レビュー情報</div>
 			<div class="section-item">総レビュー数：
@@ -444,39 +446,39 @@ async function getRakutenInfo() {
 		</div>
 		`;
 
-	// クーポン情報を取得する
-	const result = await fetchCouponData(itemInfo, minPrice);
-	const resultJson = JSON.parse(result);
-	// alert(resultJson);
-	const couponData = resultJson.items && resultJson.items[0] && resultJson.items[0].length > 0 ? resultJson.items[0] : null;
-	// alert(couponData);
+		// クーポン情報を取得する
+		const result = await fetchCouponData(itemInfo, minPrice);
+		const resultJson = JSON.parse(result);
+		// alert(resultJson);
+		const couponData = resultJson.items && resultJson.items[0] && resultJson.items[0].length > 0 ? resultJson.items[0] : null;
+		// alert(couponData);
 
-	const couponBaseUrl = 'https://coupon.rakuten.co.jp/getCoupon?getkey=';
-	// クーポン情報のHTML構築
-	const coupons =
-		couponData !== null
-			? couponData.coupons
-					.map(function (coupon) {
-						return `
+		const couponBaseUrl = 'https://coupon.rakuten.co.jp/getCoupon?getkey=';
+		// クーポン情報のHTML構築
+		const coupons =
+			couponData !== null
+				? couponData.coupons
+						.map(function (coupon) {
+							return `
 						<div class="section-item">
 							<p><a href="${couponBaseUrl}${coupon.getKey}">${coupon.couponName}</a></p>
 							<p>開始：${formatDateToCustomFormat(coupon.couponStartDate)}</p>
 							<p>終了：${formatDateToCustomFormat(coupon.couponEndDate)}</p>
 						</div>
 						`;
-					})
-					.join('')
-			: '現在利用できるクーポンは発行されていません。または楽天にログインしてから実行してください。';
+						})
+						.join('')
+				: '現在利用できるクーポンは発行されていません。または楽天にログインしてから実行してください。';
 
-	const couponInfo = `
+		const couponInfo = `
 		<div class="widget-section">
 			<div class="section-title">クーポン情報</div>
 			${coupons}
 		</div>
 		`;
 
-	// メインフレームの構築
-	const mainFrame = `
+		// メインフレームの構築
+		const mainFrame = `
 		<div class="widget-header">
 			<span>商品情報抽出</span>
 			<div class="widget-controls">
@@ -493,150 +495,151 @@ async function getRakutenInfo() {
 		</div>
 		`;
 
-	// すべての情報を結合
-	container.innerHTML = mainFrame;
-	document.body.appendChild(container);
+		// すべての情報を結合
+		container.innerHTML = mainFrame;
+		document.body.appendChild(container);
 
-	// ドラッグ機能の実装
-	let isDragging = false;
-	let currentX;
-	let currentY;
-	let initialX;
-	let initialY;
-	let xOffset = 0;
-	let yOffset = 0;
+		// ドラッグ機能の実装
+		let isDragging = false;
+		let currentX;
+		let currentY;
+		let initialX;
+		let initialY;
+		let xOffset = 0;
+		let yOffset = 0;
 
-	const header = container.querySelector('.widget-header');
+		const header = container.querySelector('.widget-header');
 
-	header.addEventListener('mousedown', dragStart);
-	document.addEventListener('mousemove', drag);
-	document.addEventListener('mouseup', dragEnd);
+		header.addEventListener('mousedown', dragStart);
+		document.addEventListener('mousemove', drag);
+		document.addEventListener('mouseup', dragEnd);
 
-	function dragStart(e) {
-		initialX = e.clientX - xOffset;
-		initialY = e.clientY - yOffset;
-		if (e.target === header) {
-			isDragging = true;
+		function dragStart(e) {
+			initialX = e.clientX - xOffset;
+			initialY = e.clientY - yOffset;
+			if (e.target === header) {
+				isDragging = true;
+			}
 		}
-	}
 
-	function drag(e) {
-		if (isDragging) {
-			e.preventDefault();
-			currentX = e.clientX - initialX;
-			currentY = e.clientY - initialY;
-			xOffset = currentX;
-			yOffset = currentY;
-			container.style.transform = 'translate(' + currentX + 'px, ' + currentY + 'px)';
+		function drag(e) {
+			if (isDragging) {
+				e.preventDefault();
+				currentX = e.clientX - initialX;
+				currentY = e.clientY - initialY;
+				xOffset = currentX;
+				yOffset = currentY;
+				container.style.transform = 'translate(' + currentX + 'px, ' + currentY + 'px)';
+			}
 		}
+
+		function dragEnd() {
+			initialX = currentX;
+			initialY = currentY;
+			isDragging = false;
+		}
+
+		// 最小化ボタンの機能
+		const minimizeBtn = container.querySelector('.widget-minimize');
+		minimizeBtn.addEventListener('click', function () {
+			container.classList.toggle('widget-minimized');
+			minimizeBtn.textContent = container.classList.contains('widget-minimized') ? '□' : '_';
+		});
+
+		// 閉じるボタンの機能
+		const closeBtn = container.querySelector('.widget-close');
+		closeBtn.addEventListener('click', function () {
+			container.remove();
+		});
 	}
 
-	function dragEnd() {
-		initialX = currentX;
-		initialY = currentY;
-		isDragging = false;
-	}
+	// 楽天のクーポン情報を取得する
 
-	// 最小化ボタンの機能
-	const minimizeBtn = container.querySelector('.widget-minimize');
-	minimizeBtn.addEventListener('click', function () {
-		container.classList.toggle('widget-minimized');
-		minimizeBtn.textContent = container.classList.contains('widget-minimized') ? '□' : '_';
-	});
+	function fetchCouponData(itemInfo, minPrice) {
+		const callbackName = `jsonp${Math.floor(Math.random() * 9000000000000)}`;
+		const params = {
+			items: `["itemId=${itemInfo.itemId}&price=${minPrice}&shopId=${itemInfo.shopId}"]`,
+			locId: '101',
+			options: '["incAcqCond=true"]',
+			callback: callbackName,
+			_: Date.now(), // キャッシュバスター
+		};
 
-	// 閉じるボタンの機能
-	const closeBtn = container.querySelector('.widget-close');
-	closeBtn.addEventListener('click', function () {
-		container.remove();
-	});
-}
+		const baseUrl = 'https://api.coupon.rakuten.co.jp/search';
+		const queryString = Object.entries(params)
+			.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+			.join('&');
 
-// 楽天のクーポン情報を取得する
+		const url = `${baseUrl}?${queryString}`;
 
-function fetchCouponData(itemInfo, minPrice) {
-	const callbackName = `jsonp${Math.floor(Math.random() * 9000000000000)}`;
-	const params = {
-		items: `["itemId=${itemInfo.itemId}&price=${minPrice}&shopId=${itemInfo.shopId}"]`,
-		locId: '101',
-		options: '["incAcqCond=true"]',
-		callback: callbackName,
-		_: Date.now(), // キャッシュバスター
-	};
+		return new Promise((resolve, reject) => {
+			// JSONP用のスクリプトタグを作成
+			const script = document.createElement('script');
+			script.src = url;
+			// コールバック関数を定義
+			window[params.callback] = function (responce) {
+				// const data = responce;
+				const data = JSON.stringify(responce);
+				try {
+					if (data && data.length > 0) {
+						resolve(data);
+						// alert(data);
+					} else {
+						reject(new Error('データが空です'));
+					}
+				} catch (error) {
+					reject(error);
+				} finally {
+					// 必要ならスクリプトタグを削除
+					document.body.removeChild(script);
 
-	const baseUrl = 'https://api.coupon.rakuten.co.jp/search';
-	const queryString = Object.entries(params)
-		.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-		.join('&');
-
-	const url = `${baseUrl}?${queryString}`;
-
-	return new Promise((resolve, reject) => {
-		// JSONP用のスクリプトタグを作成
-		const script = document.createElement('script');
-		script.src = url;
-		// コールバック関数を定義
-		window[params.callback] = function (responce) {
-			// const data = responce;
-			const data = JSON.stringify(responce);
-			try {
-				if (data && data.length > 0) {
-					resolve(data);
-					// alert(data);
-				} else {
-					reject(new Error('データが空です'));
+					// コールバック関数も削除
+					delete window[params.callback];
 				}
-			} catch (error) {
-				reject(error);
-			} finally {
-				// 必要ならスクリプトタグを削除
-				document.body.removeChild(script);
+			};
 
-				// コールバック関数も削除
+			script.onerror = () => {
+				reject(new Error('スクリプトのロードに失敗しました'));
+				if (script.parentNode) {
+					document.body.removeChild(script);
+				}
 				delete window[params.callback];
-			}
-		};
+			};
 
-		script.onerror = () => {
-			reject(new Error('スクリプトのロードに失敗しました'));
-			if (script.parentNode) {
-				document.body.removeChild(script);
-			}
-			delete window[params.callback];
-		};
+			// スクリプトをDOMに追加
+			document.body.appendChild(script);
+		});
+	}
 
-		// スクリプトをDOMに追加
-		document.body.appendChild(script);
-	});
-}
+	function formatDateToCustomFormat(isoDate) {
+		const date = new Date(isoDate); // ISO形式の文字列をDateオブジェクトに変換
 
-function formatDateToCustomFormat(isoDate) {
-	const date = new Date(isoDate); // ISO形式の文字列をDateオブジェクトに変換
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0始まりなので+1
+		const day = String(date.getDate()).padStart(2, '0');
+		const hours = String(date.getHours()).padStart(2, '0');
+		const minutes = String(date.getMinutes()).padStart(2, '0');
+		const seconds = String(date.getSeconds()).padStart(2, '0');
 
-	const year = date.getFullYear();
-	const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0始まりなので+1
-	const day = String(date.getDate()).padStart(2, '0');
-	const hours = String(date.getHours()).padStart(2, '0');
-	const minutes = String(date.getMinutes()).padStart(2, '0');
-	const seconds = String(date.getSeconds()).padStart(2, '0');
+		// フォーマットに組み立てる
+		return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
+	}
 
-	// フォーマットに組み立てる
-	return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
-}
+	// ########################################
 
-// ########################################
+	//  既にUIが表示されている場合は削除する
+	if (document.getElementById('floating-extractor')) {
+		document.getElementById('floating-extractor').remove();
+	}
 
-//  既にUIが表示されている場合は削除する
-if (document.getElementById('floating-extractor')) {
-	document.getElementById('floating-extractor').remove();
-}
-
-const currentUrl = window.location.hostname;
-if (currentUrl.includes('rakuten')) {
-	console.log('RAKUTEN');
-	getRakutenInfo();
-} else if (currentUrl.includes('yahoo')) {
-	console.log('YAHOO');
-	getYahooInfo();
-} else {
-	alert('このサイトには対応していません。');
-}
+	const currentUrl = window.location.hostname;
+	if (currentUrl.includes('rakuten')) {
+		console.log('RAKUTEN');
+		getRakutenInfo();
+	} else if (currentUrl.includes('yahoo')) {
+		console.log('YAHOO');
+		getYahooInfo();
+	} else {
+		alert('このサイトには対応していません。');
+	}
+})();
