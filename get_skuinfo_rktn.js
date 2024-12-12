@@ -447,12 +447,12 @@ async function getRakutenInfo() {
 	// クーポン情報を取得する
 	const result = await fetchCouponData(itemInfo, minPrice);
 	const resultJson = JSON.parse(result);
-	const couponData = resultJson.items[0];
+	const couponData = resultJson.items ? resultJson.items[0] : null;
 
 	const couponBaseUrl = 'https://coupon.rakuten.co.jp/getCoupon?getkey=';
 	// クーポン情報のHTML構築
 	const coupons =
-		resultJson && couponData.coupons.length > 0
+		couponData !== null
 			? couponData.coupons
 					.map(function (coupon) {
 						return `
@@ -464,7 +464,7 @@ async function getRakutenInfo() {
 						`;
 					})
 					.join('')
-			: '現在利用できるクーポンは発行されていません。';
+			: '現在利用できるクーポンは発行されていません。または楽天にログインしてから実行してください。';
 
 	const couponInfo = `
 		<div class="widget-section">
