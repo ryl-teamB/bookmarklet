@@ -66,7 +66,7 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 		.then((data) => {
 			const items = data.Items;
 			if (items == "") {
-				throw new Error("在庫切れ？");
+				throw new Error("在庫切れ？：" + keyword);
 			}
 			for (const item of items) {
 				// console.log(item.Item.itemUrl);
@@ -74,12 +74,29 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 				const searchString = keyword;
 				const isMatch = checkURLContainsSpecificString(url, searchString);
 				if (isMatch) {
-					const price = item.Item.itemPrice + "円"; // 商品価格を取得
-					const priceNode = document.createTextNode(price);
-
-					let wrapperDiv = document.createElement("div");
+					// 表示する項目を定義
+					const price = `価格：${item.Item.itemPrice}円`;
+					const pointRate_value = item.Item.pointRate;
+					const startTime_value = item.Item.startTime;
+					const endTime_value = item.Item.endTime;
+					const pointRate = `ポイント変倍率：${pointRate_value}倍`;
+					const startTime = `販売開始日時：${startTime_value}`;
+					const endTime = `販売終了日時：${endTime_value}`;
+					
+					const wrapper_div = document.createElement("div");
+					const price_div = document.createElement("div");
+					const pointRate_div = document.createElement("div");
+					const startTime_div = document.createElement("div");
+					const endTime_div = document.createElement("div"); 
+					price_div.textContent = price;
+					price_div.className = "item-page_price";
+					pointRate_div.textContent = pointRate;
+					pointRate_div.className = "item-page_pointRate";
+					startTime_div.textContent = startTime;
+					endTime_div.textContent = endTime;
+					
 					// スタイルをまとめて設定する関数を呼び出す
-					setStyles(wrapperDiv, {
+					setStyles(wrapper_div, {
 						position: "absolute",
 						zIndex: "9999",
 						backgroundColor: "rgba(255,0,0,0.8)",
@@ -87,16 +104,32 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 						fontSize: "1.5rem",
 						border: "2px solid red",
 						padding: "1rem",
+						top: "20px",
+					});
+					setStyles(startTime_div, {
+						fontSize: "0.8rem",
+					});
+					setStyles(endTime_div, {
+						fontSize: "0.8rem",
 					});
 					// 要素にテキストノードを追加
-					wrapperDiv.appendChild(priceNode);
+					wrapper_div.appendChild(price_div);
+					if (pointRate_value != 1) {
+						wrapper_div.appendChild(pointRate_div);
+					}
+					if (startTime_value != "") {
+						wrapper_div.appendChild(startTime_div);
+					}
+					if (endTime_value != "") {
+						wrapper_div.appendChild(endTime_div);
+					}
 					// aタグの前に新しい要素を挿入
-					link.parentNode.insertBefore(wrapperDiv, link);
+					link.parentNode.insertBefore(wrapper_div, link);
 					break;
 				} else {
-					let wrapperDiv = document.createElement("div");
+					let wrapper_div = document.createElement("div");
 					// スタイルをまとめて設定する関数を呼び出す
-					setStyles(wrapperDiv, {
+					setStyles(wrapper_div, {
 						position: "absolute",
 						zIndex: "9999",
 						backgroundColor: "rgba(0,0,0,0.8)",
@@ -106,17 +139,17 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 						padding: "1rem",
 					});
 					// 要素にテキストノードを追加
-					wrapperDiv.appendChild(document.createTextNode("取得エラー"));
+					wrapper_div.appendChild(document.createTextNode("取得エラー"));
 					// aタグの前に新しい要素を挿入
-					link.parentNode.insertBefore(wrapperDiv, link);
+					link.parentNode.insertBefore(wrapper_div, link);
 				}
 			}
 		})
 		.catch((error) => {
 			console.error("Error:", error);
-			let wrapperDiv = document.createElement("div");
+			let wrapper_div = document.createElement("div");
 			// スタイルをまとめて設定する関数を呼び出す
-			setStyles(wrapperDiv, {
+			setStyles(wrapper_div, {
 				position: "absolute",
 				zIndex: "9999",
 				backgroundColor: "rgba(0,0,0,0.8)",
@@ -126,9 +159,9 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 				padding: "1rem",
 			});
 			// 要素にテキストノードを追加
-			wrapperDiv.appendChild(document.createTextNode("取得エラー"));
+			wrapper_div.appendChild(document.createTextNode("取得エラー"));
 			// aタグの前に新しい要素を挿入
-			link.parentNode.insertBefore(wrapperDiv, link);
+			link.parentNode.insertBefore(wrapper_div, link);
 		});
 }
 
@@ -180,6 +213,3 @@ function startPriceCheck() {
 	console.log("価格チェック開始");
 	executeRequestsSequentially(shopCode, matchedLinks, 0);
 }
-
-// 開発用
-// startPriceCheck();
