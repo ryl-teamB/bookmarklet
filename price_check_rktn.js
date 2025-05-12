@@ -45,6 +45,9 @@ document.getElementById('shopCodeInput').addEventListener('keydown', function (e
 // アプリケーションIDを指定
 const applicationId = '1008693261382501115';
 
+// 処理停止フラグを追加
+let shouldStopProcessing = false;
+
 // ヘルパーメソッド: スタイルを設定する関数
 function setStyles(element, styles) {
 	for (let prop in styles) {
@@ -62,11 +65,24 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 	// console.log(link);
 	// console.log("keyword",keyword);
 	fetch(apiEndpoint)
-		.then((response) => response.json())
+		.then((response) => {
+			// HTTPステータスコードをチェック
+			if (!response.ok) {
+				// エラーレスポンスのJSONを解析
+				return response.json().then(errorData => {
+					throw new Error(
+						`APIエラー (${response.status}): ${errorData.error || 'unknown_error'} - ${
+							errorData.error_description || 'unknown error description'
+						}`
+					);
+				});
+			}
+			return response.json();
+		})
 		.then((data) => {
 			const items = data.Items;
 			if (items == '') {
-				throw new Error('在庫切れ？：' + keyword);
+				throw new Error('在庫切れ、または該当商品なし：' + keyword);
 			}
 			for (const item of items) {
 				// console.log(item.Item.itemUrl);
@@ -149,6 +165,18 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 		})
 		.catch((error) => {
 			console.error('Error:', error);
+			
+			// HTTPステータスコードが404以外の場合、処理を停止
+			if (error.message.includes('APIエラー')) {
+				const statusCode = error.message.match(/\((\d+)\)/);
+				if (statusCode && statusCode[1] !== '404') {
+					// 404以外のエラーの場合、処理を停止
+					shouldStopProcessing = true;
+					alert('APIエラーが発生しました。処理を停止します。\n\n' + error.message);
+					return; // 処理を停止（エラー表示を行わずに終了）
+				}
+			}
+			
 			let wrapper_div = document.createElement('div');
 			wrapper_div.className = 'js-checked-item';
 			// スタイルをまとめて設定する関数を呼び出す
@@ -157,12 +185,17 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 				zIndex: '9999',
 				backgroundColor: 'rgba(0,0,0,0.8)',
 				color: '#fff',
-				fontSize: '1.5rem',
+				fontSize: '1.2rem',
 				border: '2px solid red',
 				padding: '1rem',
+				maxWidth: '300px',
+				wordWrap: 'break-word'
 			});
-			// 要素にテキストノードを追加
-			wrapper_div.appendChild(document.createTextNode('取得エラー'));
+			// エラーメッセージを詳細に表示
+			const errorMessage = error.message.includes('APIエラー')
+				? error.message
+				: '取得エラー: ' + error.message;
+			wrapper_div.appendChild(document.createTextNode(errorMessage));
 			// aタグの前に新しい要素を挿入
 			link.parentNode.insertBefore(wrapper_div, link);
 		});
@@ -170,6 +203,12 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 
 // リクエストを1秒ずつ間隔を空けて実行する関数
 function executeRequestsSequentially(shopCode, links, currentIndex) {
+	// 処理停止フラグのチェックを追加
+	if (shouldStopProcessing) {
+		console.log('エラーにより処理を停止しました。');
+		return;
+	}
+	
 	if (currentIndex >= links.length) {
 		console.log('商品情報取得完了');
 		// alert("商品情報の取得が完了しました！");
@@ -291,6 +330,9 @@ function comparePrices(nodes) {
 
 // 実行ボタンをクリックしたときに処理を開始する関数
 function startPriceCheck() {
+	// 処理停止フラグをリセット
+	shouldStopProcessing = false;
+	
 	const inputElement = document.getElementById('shopCodeInput');
 	if (inputElement.value == '') {
 		alert('ショップコードを入力してください！');
