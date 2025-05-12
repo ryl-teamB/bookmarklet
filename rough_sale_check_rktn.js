@@ -17,7 +17,7 @@ formDiv.appendChild(appLabel);
 const shopCodeInput = document.createElement('input');
 shopCodeInput.id = 'shopCodeInput';
 shopCodeInput.type = 'text';
-shopCodeInput.value = 'z-craft';
+// shopCodeInput.value = 'z-craft';
 shopCodeInput.placeholder = 'z-craft'; // テキストボックスにプレースホルダーを追加
 shopCodeInput.style.fontSize = '1rem';
 shopCodeInput.style.width = '10rem';
