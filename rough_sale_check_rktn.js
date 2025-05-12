@@ -293,7 +293,7 @@ function comparePrices(nodes) {
 			}
 
 			// ポイントの合否判定
-			if (itemPage_point > '1' && salePage_point_elm.innerText.includes('ポイント')) {
+			if (itemPage_point > '1' && salePage_point_elm && salePage_point_elm.innerText.includes('ポイント')) {
 				// アイテムページにポイントが設定されている、かつセールページにポイントが設定されている場合
 				console.log('ポイントが設定されています。整合性を確認します');
 				if (itemPage_point == salePage_point) {
@@ -316,6 +316,14 @@ function comparePrices(nodes) {
 			} else if (itemPage_point == '1' && salePage_point >= '1') {
 				// アイテムページにポイントが設定されていない、かつセールページにポイントが設定されている場合
 				console.error('アイテムページにはポイントが設定されていません。');
+				console.error('itemPage_point', itemPage_point);
+				console.error('salePage_point', salePage_point);
+				console.error('不合格', itemUrl);
+				currentNode.style.backgroundColor = '#00ff00';
+				console.log(currentNode);
+			} else if (itemPage_point > '1' && !salePage_point) {
+				// アイテムページにポイントが設定されているが、セールページにポイントが設定されていない場合
+				console.error('セールページにポイントが設定されていません。');
 				console.error('itemPage_point', itemPage_point);
 				console.error('salePage_point', salePage_point);
 				console.error('不合格', itemUrl);
