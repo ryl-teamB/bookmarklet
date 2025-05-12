@@ -200,44 +200,91 @@ function comparePrices(nodes) {
 	for (let i = 0; i < nodes.length; i++) {
 		const node = nodes[i];
 		const parentNode = node.parentNode;
-		console.log(parentNode);
+		// console.log(parentNode);
 		// console.log(node.nodeType);
 		// console.log(parentNode.nodeType);
+		const itemUrl = parentNode.querySelector('a').href;
+		try {
+			// console.log(itemUrl);
 
-		const itemPage_price = parentNode.querySelector('.item-page_price') || '';
-		const itemPage_point = parentNode.querySelector('.item-page_pointRate') || '';
-		const salePage_price = parentNode.querySelector('.price2');
-		const salePage_point = parentNode.querySelector('.icon');
+			// 要素を取得
+			const itemPage_price_elm = parentNode.querySelector('.item-page_price');
+			const itemPage_point_elm = parentNode.querySelector('.item-page_pointRate');
+			const salePage_price_elm = parentNode.querySelector('.price2');
+			const salePage_icon_elm = parentNode.querySelectorAll('.icon');
+			let salePage_point_elm = null;
 
-		// 不合格の場合ノードを反転させる
-		let failedNode = parentNode.querySelector('.js-checked-item');
-		if (itemPage_price && salePage_price) {
-			console.log(itemPage_point.innerText);
-			console.log(salePage_point.innerText);
-			if (itemPage_point.innerText.replace(/\D/g, '') == salePage_point.innerText.replace(/\D/g, '')) {
-				console.log('合格');
-			} else {
-				console.log('不合格');
-				failedNode.style.backgroundColor = '#00ff00';
-				console.log(failedNode);
+			if (salePage_icon_elm.length >= 1) {
+				for (let i = 0; i < salePage_icon_elm.length; i++) {
+					if (salePage_icon_elm[i].innerText.includes('ポイント')) {
+						salePage_point_elm = salePage_icon_elm[i];
+					}
+				}
 			}
-		} else {
-			console.log('不合格');
-			failedNode.style.backgroundColor = '#00ff00';
-			console.log(failedNode);
-		}
-		if (itemPage_point == 1 && salePage_point == '') {
-			console.log('合格');
-		} else if (itemPage_point != 1 && itemPage_point != '' && salePage_point != '') {
-			if (itemPage_point.innerText.replace(/\D/g, '') == salePage_point.innerText.replace(/\D/g, '')) {
-				console.log(itemPage_point.innerText.replace(/\D/g, ''));
-				console.log(salePage_point.innerText.replace(/\D/g, ''));
-				console.log('合格');
-			} else {
-				console.log('不合格');
-				failedNode.style.backgroundColor = '#00ff00';
-				console.log(failedNode);
+
+			// 値を取得、要素が存在しない場合は空文字を代入
+			const itemPage_price = itemPage_price_elm ? itemPage_price_elm.innerText.replace(/\D/g, '') : '';
+			const itemPage_point = itemPage_point_elm ? itemPage_point_elm.innerText.replace(/\D/g, '') : '';
+			const salePage_price = salePage_price_elm ? salePage_price_elm.innerText.replace(/\D/g, '') : '';
+			const salePage_point = salePage_point_elm ? salePage_point_elm.innerText.replace(/\D/g, '') : '';
+
+			// 合否判定のときに使うノードを格納する変数
+			let currentNode = parentNode.querySelector('.js-checked-item');
+
+			// 価格の合否判定
+			if (itemPage_price == '') {
+				console.log('APIで価格が取得できません', itemUrl);
+				continue;
 			}
+			if (salePage_price == '') {
+				console.log('セールページで価格が取得できません', itemUrl);
+				continue;
+			}
+			if (itemPage_price == salePage_price) {
+				console.log('itemPage_price', itemPage_price);
+				console.log('salePage_price', salePage_price);
+				console.log('合格', itemUrl);
+			} else {
+				console.error('アイテムページの価格と一致しません。');
+				console.error('itemPage_price', itemPage_price);
+				console.error('salePage_price', salePage_price);
+				console.error('不合格', itemUrl);
+				currentNode.style.backgroundColor = '#00ff00';
+				console.log(currentNode);
+			}
+
+			// ポイントの合否判定
+			if (itemPage_point > '1' && salePage_point_elm.innerText.includes('ポイント')) {
+				// アイテムページにポイントが設定されている、かつセールページにポイントが設定されている場合
+				console.log('ポイントが設定されています。整合性を確認します');
+				if (itemPage_point == salePage_point) {
+					console.log('itemPage_point', itemPage_point);
+					console.log('salePage_point', salePage_point);
+					console.log('合格', itemUrl);
+				} else {
+					console.error('セールページのポイントが間違っています。');
+					console.error('itemPage_point', itemPage_point);
+					console.error('salePage_point', salePage_point);
+					console.error('不合格', itemUrl);
+					currentNode.style.backgroundColor = '#00ff00';
+					console.log(currentNode);
+				}
+			} else if (itemPage_point == '1' && salePage_point == '') {
+				// アイテムページにポイントが設定されていない、かつセールページにポイントが設定されていない場合
+				console.log('itemPage_point', itemPage_point);
+				console.log('salePage_point', salePage_point);
+				console.log('合格', itemUrl);
+			} else if (itemPage_point == '1' && salePage_point >= '1') {
+				// アイテムページにポイントが設定されていない、かつセールページにポイントが設定されている場合
+				console.error('アイテムページにはポイントが設定されていません。');
+				console.error('itemPage_point', itemPage_point);
+				console.error('salePage_point', salePage_point);
+				console.error('不合格', itemUrl);
+				currentNode.style.backgroundColor = '#00ff00';
+				console.log(currentNode);
+			}
+		} catch (error) {
+			console.log(error, itemUrl);
 		}
 	}
 }
