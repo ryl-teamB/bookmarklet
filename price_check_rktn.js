@@ -173,9 +173,9 @@ function executeRequestsSequentially(shopCode, links, currentIndex) {
 	if (currentIndex >= links.length) {
 		console.log('商品情報取得完了');
 		// alert("商品情報の取得が完了しました！");
-		console.log('価格などをチェックします');
+		console.log('価格とポイントをチェックします');
 		comparePrices(links);
-		// alert("チェックが完了しました！");
+		alert('価格、ポイントチェックが完了しました！\nコンソールにエラーが出ていないか確認してください。');
 		return; // リンクの全ての要素を処理したら終了
 	}
 
@@ -192,7 +192,7 @@ function executeRequestsSequentially(shopCode, links, currentIndex) {
 	// 次のリクエストを1秒後に実行する
 	setTimeout(function () {
 		executeRequestsSequentially(shopCode, links, currentIndex + 1);
-	}, 500);
+	}, 350);
 }
 
 // ページ上の価格とAPI取得の価格を比較する関数
