@@ -9,24 +9,74 @@ formDiv.style.border = '2px solid #f00';
 formDiv.style.padding = '0.5rem';
 
 const appLabel = document.createElement('label');
-appLabel.innerHTML = 'ショップコードを入力してください';
+appLabel.innerHTML = '店舗を選択してください';
 appLabel.style.display = 'block';
 appLabel.style.fontSize = '1rem';
 formDiv.appendChild(appLabel);
 
-const shopCodeInput = document.createElement('input');
-shopCodeInput.id = 'shopCodeInput';
-shopCodeInput.type = 'text';
-// shopCodeInput.value = 'z-craft';
-shopCodeInput.placeholder = 'z-craft'; // テキストボックスにプレースホルダーを追加
-shopCodeInput.style.fontSize = '1rem';
-shopCodeInput.style.width = '10rem';
-formDiv.appendChild(shopCodeInput);
+// const shopCodeInput = document.createElement('input');
+// shopCodeInput.id = 'shopCodeInput';
+// shopCodeInput.type = 'text';
+// // shopCodeInput.value = 'z-craft';
+// shopCodeInput.placeholder = 'z-craft'; // テキストボックスにプレースホルダーを追加
+// shopCodeInput.style.fontSize = '1rem';
+// shopCodeInput.style.width = '10rem';
+// formDiv.appendChild(shopCodeInput);
+
+const shopCodeSelect = document.createElement('select');
+shopCodeSelect.id = 'shopCodeSelect';
+shopCodeSelect.type = 'text';
+shopCodeSelect.style.fontSize = '1rem';
+shopCodeSelect.style.width = '10rem';
+shopCodeSelect.style.padding = '0.5rem 0';
+formDiv.appendChild(shopCodeSelect);
+
+// 作成上限のためviaとbfは同じアプリケーションIDを使用する
+const shopCodeDict = {
+	zc: {
+		shopCode: 'z-craft',
+		appId: '1093853519945245128',
+	},
+	zspo: {
+		shopCode: 'z-sports',
+		appId: '1067143139286308132',
+	},
+	zm: {
+		shopCode: 'z-mall',
+		appId: '1066418199158018167',
+	},
+	via: {
+		shopCode: 'via-torino',
+		appId: '1023492695841644249',
+	},
+	kc: {
+		shopCode: 'kutsu-collection',
+		appId: '1097442740436399519',
+	},
+	bf: {
+		shopCode: 'baseballfieldtofuture',
+		appId: '1023492695841644249',
+	},
+};
+
+const placeholderOption = document.createElement('option');
+placeholderOption.value = '---';
+placeholderOption.textContent = '選択してください';
+shopCodeSelect.appendChild(placeholderOption);
+
+for (let i = 0; i < Object.keys(shopCodeDict).length; i++) {
+	const option = document.createElement('option');
+	option.value = Object.keys(shopCodeDict)[i];
+	option.textContent = Object.keys(shopCodeDict)[i];
+	shopCodeSelect.appendChild(option);
+}
+
 
 const executeButton = document.createElement('button');
 executeButton.textContent = '実行';
 executeButton.addEventListener('click', startPriceCheck);
 executeButton.style.fontSize = '1rem';
+executeButton.style.marginLeft = '0.5rem';
 formDiv.appendChild(executeButton);
 
 const progressCounter = document.createElement('p');
@@ -36,7 +86,7 @@ formDiv.appendChild(progressCounter);
 document.body.appendChild(formDiv);
 
 // エンターキーで実行できるようにする
-document.getElementById('shopCodeInput').addEventListener('keydown', function (event) {
+document.getElementById('shopCodeSelect').addEventListener('keydown', function (event) {
 	if (event.key === 'Enter') {
 		startPriceCheck();
 	}
@@ -60,7 +110,7 @@ function checkURLContainsSpecificString(url, searchString) {
 }
 
 // 商品価格を取得してaタグに追加する関数
-function addPriceToLink(apiEndpoint, link, keyword) {
+function addPriceToLink(apiEndpoint, link, keyword, shopCode, appId) {
 	// console.log(apiEndpoint);
 	// console.log(link);
 	// console.log("keyword",keyword);
@@ -69,12 +119,8 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 			// HTTPステータスコードをチェック
 			if (!response.ok) {
 				// エラーレスポンスのJSONを解析
-				return response.json().then(errorData => {
-					throw new Error(
-						`APIエラー (${response.status}): ${errorData.error || 'unknown_error'} - ${
-							errorData.error_description || 'unknown error description'
-						}`
-					);
+				return response.json().then((errorData) => {
+					throw new Error(`APIエラー (${response.status}): ${errorData.error || 'unknown_error'} - ${errorData.error_description || 'unknown error description'}`);
 				});
 			}
 			return response.json();
@@ -165,7 +211,7 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 		})
 		.catch((error) => {
 			console.error('Error:', error);
-			
+
 			// HTTPステータスコードが404以外の場合、処理を停止
 			if (error.message.includes('APIエラー')) {
 				const statusCode = error.message.match(/\((\d+)\)/);
@@ -176,7 +222,7 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 					return; // 処理を停止（エラー表示を行わずに終了）
 				}
 			}
-			
+
 			let wrapper_div = document.createElement('div');
 			wrapper_div.className = 'js-checked-item';
 			// スタイルをまとめて設定する関数を呼び出す
@@ -189,12 +235,10 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 				border: '2px solid red',
 				padding: '1rem',
 				maxWidth: '300px',
-				wordWrap: 'break-word'
+				wordWrap: 'break-word',
 			});
 			// エラーメッセージを詳細に表示
-			const errorMessage = error.message.includes('APIエラー')
-				? error.message
-				: '取得エラー: ' + error.message;
+			const errorMessage = error.message.includes('APIエラー') ? error.message : '取得エラー: ' + error.message;
 			wrapper_div.appendChild(document.createTextNode(errorMessage));
 			// aタグの前に新しい要素を挿入
 			link.parentNode.insertBefore(wrapper_div, link);
@@ -202,13 +246,13 @@ function addPriceToLink(apiEndpoint, link, keyword) {
 }
 
 // リクエストを1秒ずつ間隔を空けて実行する関数
-function executeRequestsSequentially(shopCode, links, currentIndex) {
+function executeRequestsSequentially(shopCode, links, currentIndex, appId) {
 	// 処理停止フラグのチェックを追加
 	if (shouldStopProcessing) {
 		console.log('エラーにより処理を停止しました。');
 		return;
 	}
-	
+
 	if (currentIndex >= links.length) {
 		console.log('商品情報取得完了');
 		// alert("商品情報の取得が完了しました！");
@@ -221,16 +265,16 @@ function executeRequestsSequentially(shopCode, links, currentIndex) {
 	let link = links[currentIndex];
 	let url = link.href.split('/');
 	// console.log(url[4]);
-	let apiEndpoint = 'https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601?format=json&keyword=' + url[4] + '&shopCode=' + shopCode + '&applicationId=' + applicationId;
+	let apiEndpoint = 'https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601?format=json&keyword=' + url[4] + '&shopCode=' + shopCode + '&applicationId=' + appId;
 	// 商品価格を取得してaタグに追加する関数を呼び出す
 	// console.log(link.href.split("/").pop());
 	// console.log("url[4]",url[4]);
-	addPriceToLink(apiEndpoint, link, url[4]);
+	addPriceToLink(apiEndpoint, link, url[4], shopCode, appId);
 
 	progressCounter.innerHTML = '進捗（' + (currentIndex + 1) + ' / ' + links.length + '）';
 	// 次のリクエストを1秒後に実行する
 	setTimeout(function () {
-		executeRequestsSequentially(shopCode, links, currentIndex + 1);
+		executeRequestsSequentially(shopCode, links, currentIndex + 1, appId);
 	}, 350);
 }
 
@@ -340,13 +384,17 @@ function comparePrices(nodes) {
 function startPriceCheck() {
 	// 処理停止フラグをリセット
 	shouldStopProcessing = false;
-	
-	const inputElement = document.getElementById('shopCodeInput');
-	if (inputElement.value == '') {
-		alert('ショップコードを入力してください！');
+
+	console.log(shopCodeSelect.value);
+
+	if (shopCodeSelect.value == '---') {
+		alert('店舗を選択してください！');
 		return;
 	}
-	const shopCode = inputElement.value;
+
+	shopCode = shopCodeDict[shopCodeSelect.value].shopCode;
+	appId = shopCodeDict[shopCodeSelect.value].appId;
+
 	// ページ内のすべてのaタグを取得
 	let allLinks = document.getElementsByTagName('a');
 	let pattern = new RegExp('https://item\\.rakuten\\.co\\.jp/' + shopCode + '/[\\d\\-_]+');
@@ -367,5 +415,5 @@ function startPriceCheck() {
 	// リクエストを1秒ずつ間隔を空けて実行する
 	console.log('商品情報を取得します');
 	// executeRequestsSequentially(shopCode, sampleLinks, 0);
-	executeRequestsSequentially(shopCode, matchedLinks, 0);
+	executeRequestsSequentially(shopCode, matchedLinks, 0, appId);
 }
