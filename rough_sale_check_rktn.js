@@ -71,7 +71,6 @@ for (let i = 0; i < Object.keys(shopCodeDict).length; i++) {
 	shopCodeSelect.appendChild(option);
 }
 
-
 const executeButton = document.createElement('button');
 executeButton.textContent = '実行';
 executeButton.addEventListener('click', startPriceCheck);
@@ -352,12 +351,12 @@ function comparePrices(nodes) {
 					currentNode.style.backgroundColor = '#00ff00';
 					console.log(currentNode);
 				}
-			} else if (itemPage_point == '1' && salePage_point == '') {
+			} else if (itemPage_point == '' && salePage_point == '') {
 				// アイテムページにポイントが設定されていない、かつセールページにポイントが設定されていない場合
 				console.log('itemPage_point', itemPage_point);
 				console.log('salePage_point', salePage_point);
 				console.log('合格', itemUrl);
-			} else if (itemPage_point == '1' && salePage_point >= '1') {
+			} else if (itemPage_point == '' && salePage_point >= '1') {
 				// アイテムページにポイントが設定されていない、かつセールページにポイントが設定されている場合
 				console.error('アイテムページにはポイントが設定されていません。');
 				console.error('itemPage_point', itemPage_point);
