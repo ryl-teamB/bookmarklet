@@ -43,8 +43,9 @@ bookmarklet/
 ├── app.html              # 動作テスト用HTMLファイル
 ├── csv_dl-btn.js         # 楽天RMSのCSVダウンロード補助
 ├── get_iteminfo-rktn.js  # 商品ページから各種情報取得
-├── get_skuinfo_rktn.js   # SKU情報取得機能
-└── rough_sale_check_rktn.js # 粗利セール判定機能
+├── get_skuinfo_rktn.js   # 商品ページからSKU情報取得
+├── rough_sale_check_rktn.js # 簡易セール判定
+└── backlog_mark_as_read.js # Backlogお知らせ一括既読
 ```
 
 ## 注意事項
