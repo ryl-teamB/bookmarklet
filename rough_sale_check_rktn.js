@@ -274,7 +274,7 @@ function executeRequestsSequentially(shopCode, links, currentIndex, appId) {
 	// 次のリクエストを1秒後に実行する
 	setTimeout(function () {
 		executeRequestsSequentially(shopCode, links, currentIndex + 1, appId);
-	}, 350);
+	}, 1000);
 }
 
 // ページ上の価格とAPI取得の価格を比較する関数
