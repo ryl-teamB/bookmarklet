@@ -1,4 +1,4 @@
-// 即時実行関数としてスコープを限定する
+﻿// 即時実行関数としてスコープを限定する
 (() => {
 	// スタイルの作成と追加
 	const style = document.createElement('style');
@@ -451,16 +451,21 @@
 		`;
 
 		// クーポン情報を取得する
-		const result = await fetchCouponData(itemInfo, minPrice);
-		const resultJson = JSON.parse(result);
-		// alert(resultJson);
-		const couponData = resultJson.items && resultJson.items[0] && resultJson.items[0].length > 0 ? resultJson.items[0] : null;
-		// alert(couponData);
+		let couponData = null;
+		try {
+			const result = await fetchCouponData(itemInfo, minPrice);
+			const resultJson = JSON.parse(result);
+			couponData = resultJson.items && resultJson.items[0] && resultJson.items[0].length > 0 ? resultJson.items[0] : null;
+			console.log('クーポンデータ取得成功:', couponData ? 'データあり' : 'データなし');
+		} catch (error) {
+			console.error('クーポン情報の取得に失敗しました:', error);
+			couponData = null;
+		}
 
 		const couponBaseUrl = 'https://coupon.rakuten.co.jp/getCoupon?getkey=';
 		// クーポン情報のHTML構築
 		const coupons =
-			couponData !== null
+			couponData !== null && couponData.coupons
 				? couponData.coupons
 						.map(function (coupon) {
 							return `
@@ -560,7 +565,7 @@
 	// 楽天のクーポン情報を取得する
 
 	function fetchCouponData(itemInfo, minPrice) {
-		const callbackName = `jsonp${Math.floor(Math.random() * 9000000000000)}`;
+		const callbackName = `jsonp_callback_${Math.floor(Math.random() * 9000000000000)}_${Date.now()}`;
 		const params = {
 			items: `["itemId=${itemInfo.itemId}&price=${minPrice}&shopId=${itemInfo.shopId}"]`,
 			locId: '101',
@@ -577,41 +582,90 @@
 		const url = `${baseUrl}?${queryString}`;
 
 		return new Promise((resolve, reject) => {
-			// JSONP用のスクリプトタグを作成
-			const script = document.createElement('script');
-			script.src = url;
-			// コールバック関数を定義
-			window[params.callback] = function (responce) {
-				// const data = responce;
-				const data = JSON.stringify(responce);
-				try {
-					if (data && data.length > 0) {
-						resolve(data);
-						// alert(data);
-					} else {
-						reject(new Error('データが空です'));
+			let timeoutId;
+			let script;
+			let completed = false;
+
+			// クリーンアップ関数
+			const cleanup = () => {
+				if (completed) return;
+				completed = true;
+				
+				if (timeoutId) {
+					clearTimeout(timeoutId);
+				}
+				if (script && script.parentNode) {
+					try {
+						document.body.removeChild(script);
+					} catch (e) {
+						console.warn('スクリプト削除エラー:', e);
 					}
-				} catch (error) {
-					reject(error);
-				} finally {
-					// 必要ならスクリプトタグを削除
-					document.body.removeChild(script);
-
-					// コールバック関数も削除
-					delete window[params.callback];
+				}
+				if (window[callbackName]) {
+					try {
+						delete window[callbackName];
+					} catch (e) {
+						console.warn('コールバック削除エラー:', e);
+					}
 				}
 			};
 
-			script.onerror = () => {
-				reject(new Error('スクリプトのロードに失敗しました'));
-				if (script.parentNode) {
-					document.body.removeChild(script);
-				}
-				delete window[params.callback];
-			};
+			// タイムアウト設定（5秒）
+			timeoutId = setTimeout(() => {
+				console.warn('JSONP request timeout for coupon data');
+				cleanup();
+				reject(new Error('クーポン情報の取得がタイムアウトしました'));
+			}, 5000);
 
-			// スクリプトをDOMに追加
-			document.body.appendChild(script);
+			// コールバック関数を事前に定義
+			try {
+				window[callbackName] = function (response) {
+					if (completed) return;
+					console.log('JSONP callback executed successfully');
+					
+					try {
+						const data = JSON.stringify(response);
+						if (data && data.length > 0) {
+							cleanup();
+							resolve(data);
+						} else {
+							cleanup();
+							reject(new Error('クーポンデータが空です'));
+						}
+					} catch (error) {
+						console.error('レスポンス処理エラー:', error);
+						cleanup();
+						reject(error);
+					}
+				};
+			} catch (error) {
+				console.error('コールバック関数定義エラー:', error);
+				cleanup();
+				reject(new Error('コールバック関数の定義に失敗しました'));
+				return;
+			}
+
+			// JSONP用のスクリプトタグを作成
+			try {
+				script = document.createElement('script');
+				script.src = url;
+				
+				script.onerror = (error) => {
+					if (completed) return;
+					console.error('JSONP script load error:', error);
+					cleanup();
+					reject(new Error('クーポン情報の取得に失敗しました（ネットワークエラー）'));
+				};
+
+				// スクリプトをDOMに追加
+				document.body.appendChild(script);
+				console.log('JSONP request initiated for coupon data:', callbackName);
+
+			} catch (error) {
+				console.error('スクリプト作成/追加エラー:', error);
+				cleanup();
+				reject(new Error('クーポン情報の取得処理でエラーが発生しました'));
+			}
 		});
 	}
 
