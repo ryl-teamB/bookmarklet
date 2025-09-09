@@ -355,8 +355,8 @@
 		// SKU情報の構築
 
 		// シングルSKUとマルチSKUで取得する項目を分ける
-		const classifiedSKU = itemInfo.purchaseInfo.sku.length > 0 ? 'マルチSKU' : 'シングルSKU';
-		// console.log(classifiedSKU);
+		const classifiedSKU = itemInfo.purchaseInfo.sku && itemInfo.purchaseInfo.sku.length > 0 ? 'マルチSKU' : 'シングルSKU';
+		console.log('SKU分類:', classifiedSKU);
 
 		let quantity = '';
 		let skuPrice = '';
@@ -365,31 +365,35 @@
 				.map(function (inv) {
 					return `<tr class="section-item">
 							<td>${inv.variantId}</td>
-							<td class="emphasis">${inv.newPurchaseSku.quantity}</td>
+							<td class="emphasis">${inv.newPurchaseSku ? inv.newPurchaseSku.quantity : '不明'}</td>
 						</tr>
 						`;
 				})
 				.join('');
-			skuPrice = itemInfo.sku
-				.map(function (inv) {
-					return `<tr class="section-item">
-							<td>${inv.variantId}</td>
-							<td>${inv.selectorValues}</td>
-							<td class="price emphasis">¥${inv.taxIncludedPrice.toLocaleString()}</td>
-						</tr>
-						`;
-				})
-				.join('');
+			skuPrice = itemInfo.sku && itemInfo.sku.length > 0
+				? itemInfo.sku
+					.map(function (inv) {
+						return `<tr class="section-item">
+								<td>${inv.variantId}</td>
+								<td>${inv.selectorValues || '不明'}</td>
+								<td class="price emphasis">¥${inv.taxIncludedPrice ? inv.taxIncludedPrice.toLocaleString() : '不明'}</td>
+							</tr>
+							`;
+					})
+					.join('')
+				: '<div class="section-item">SKU価格情報を取得できませんでした。</div>';
 		} else if (classifiedSKU == 'シングルSKU') {
-			quantity = itemInfo.purchaseInfo.variantMappedInventories
-				.map(function (inv) {
-					return `<tr class="section-item">
-							<td>${inv.sku}</td>
-							<td class="emphasis">${inv.quantity}</td>
-						</tr>
-						`;
-				})
-				.join('');
+			quantity = itemInfo.purchaseInfo.variantMappedInventories && itemInfo.purchaseInfo.variantMappedInventories.length > 0
+				? itemInfo.purchaseInfo.variantMappedInventories
+					.map(function (inv) {
+						return `<tr class="section-item">
+								<td>${inv.sku}</td>
+								<td class="emphasis">${inv.quantity}</td>
+							</tr>
+							`;
+					})
+					.join('')
+				: '<tr class="section-item"><td>-</td><td class="emphasis">在庫情報を取得できませんでした</td></tr>';
 			skuPrice = '<div class="section-item">シングルSKUページのためSKU価格情報は表示されません。</div>';
 		}
 
