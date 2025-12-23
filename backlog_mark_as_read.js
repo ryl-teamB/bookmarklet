@@ -1,6 +1,6 @@
 
 // API設定
-let BASE_URL = 'https://ryl6180.backlog.com/api/v2';
+let BASE_URL = 'https://jade-group.backlog.com/api/v2';
 
 // APIキー入力フォームを作成
 function createApiKeyForm() {
