@@ -31,31 +31,21 @@ shopCodeSelect.style.width = '10rem';
 shopCodeSelect.style.padding = '0.5rem 0';
 formDiv.appendChild(shopCodeSelect);
 
-// 作成上限のためviaとbfは同じアプリケーションIDを使用する
 const shopCodeDict = {
 	zc: {
 		shopCode: 'z-craft',
-		appId: '1093853519945245128',
+		appId: '9e16e97b-9380-495f-96c5-87c5a0d89f57',
+		accessKey: 'pk_kWyvezomAQFmbA2zXtwxqE0puqF30PRWNEaOOGBEmzu',
 	},
 	zspo: {
 		shopCode: 'z-sports',
-		appId: '1067143139286308132',
+		appId: '310887b9-400b-42c4-b621-b12cb905a580',
+		accessKey: 'pk_8tHncBu3Z1M148AXvwZakQjtrRB1VVRRuGNbED5iHI3',
 	},
 	zm: {
 		shopCode: 'z-mall',
-		appId: '1066418199158018167',
-	},
-	via: {
-		shopCode: 'via-torino',
-		appId: '1023492695841644249',
-	},
-	kc: {
-		shopCode: 'kutsu-collection',
-		appId: '1097442740436399519',
-	},
-	bf: {
-		shopCode: 'baseballfieldtofuture',
-		appId: '1023492695841644249',
+		appId: 'f11f7339-9ae1-44e7-8578-27c3ed59d036',
+		accessKey: 'pk_rNbZE8jwvrIL5jObaI6zvDPk6NEcpZv3XorztlGdCHw',
 	},
 };
 
@@ -91,8 +81,6 @@ document.getElementById('shopCodeSelect').addEventListener('keydown', function (
 	}
 });
 
-// アプリケーションIDを指定
-const applicationId = '1008693261382501115';
 
 // 処理停止フラグを追加
 let shouldStopProcessing = false;
@@ -368,6 +356,7 @@ async function startPriceCheck() {
 
 	const shopCode = shopCodeDict[shopCodeSelect.value].shopCode;
 	const appId = shopCodeDict[shopCodeSelect.value].appId;
+	const accessKey = shopCodeDict[shopCodeSelect.value].accessKey;
 
 	// ページ内のすべてのaタグを取得
 	const allLinks = document.getElementsByTagName('a');
@@ -396,7 +385,7 @@ async function startPriceCheck() {
 
 		const link = matchedLinks[i];
 		const url = link.href.split('/');
-		const apiEndpoint = 'https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601?format=json&keyword=' + url[4] + '&shopCode=' + shopCode + '&applicationId=' + appId;
+		const apiEndpoint = 'https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701?format=json&keyword=' + url[4] + '&shopCode=' + shopCode + '&applicationId=' + appId + '&accessKey=' + accessKey;
 		
 		// 進捗更新
 		progressCounter.innerHTML = '進捗（' + (i + 1) + ' / ' + matchedLinks.length + '）';
