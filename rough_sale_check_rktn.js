@@ -104,8 +104,8 @@ async function addPriceToLink(apiEndpoint, link, keyword, shopCode, appId, retry
 		// レート制限エラーのチェック（リトライ対象）
 		if (response.status === 429 || response.status === 503) {
 			if (retryCount < 3) {
-				console.log(`レート制限エラー (${response.status})。1秒後にリトライします... (${retryCount + 1}/3)`);
-				await new Promise(resolve => setTimeout(resolve, 1000));
+				console.log(`レート制限エラー (${response.status})。0.5秒後にリトライします... (${retryCount + 1}/3)`);
+				await new Promise(resolve => setTimeout(resolve, 500));
 				return addPriceToLink(apiEndpoint, link, keyword, shopCode, appId, retryCount + 1);
 			} else {
 				throw new Error(`APIエラー (${response.status}): リトライ回数上限に達しました`);
@@ -403,7 +403,7 @@ async function startPriceCheck() {
 
 		// 最後のリクエスト以外は間隔を空ける
 		if (i < matchedLinks.length - 1) {
-			await new Promise(resolve => setTimeout(resolve, 300));
+			await new Promise(resolve => setTimeout(resolve, 500));
 		}
 	}
 
